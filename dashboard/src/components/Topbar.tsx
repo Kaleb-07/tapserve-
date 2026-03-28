@@ -1,0 +1,39 @@
+import { Bell, Search, User } from 'lucide-react';
+import { useStore } from '../store/useStore';
+
+export const Topbar: React.FC<{ title: string }> = ({ title }) => {
+  const { user } = useStore();
+  return (
+    <div className="h-20 bg-luxury-black border-b border-luxury-border flex items-center justify-between px-8 sticky top-0 z-10">
+      <h2 className="text-xl font-medium text-white">{title}</h2>
+
+      <div className="flex items-center space-x-6">
+        <div className="relative group">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-hover:text-luxury-gold transition-colors" size={18} />
+          <input 
+            type="text" 
+            placeholder="Search orders, menu..."
+            className="bg-luxury-gray/50 border border-luxury-border rounded-full py-2 pl-10 pr-4 text-sm w-64 focus:outline-none focus:border-luxury-gold transition-all"
+          />
+        </div>
+
+        <button className="relative p-2 text-gray-400 hover:text-luxury-gold transition-colors">
+          <Bell size={20} />
+          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-luxury-black"></span>
+        </button>
+
+        <div className="h-8 w-px bg-luxury-border mx-2"></div>
+
+        <div className="flex items-center space-x-3 cursor-pointer group">
+          <div className="w-10 h-10 rounded-full border border-luxury-gold/30 flex items-center justify-center bg-luxury-gray group-hover:bg-luxury-gold/10 transition-colors">
+            <User size={20} className="text-luxury-gold" />
+          </div>
+          <div className="text-left hidden md:block">
+            <p className="text-sm font-medium text-white">{user?.name || 'Admin User'}</p>
+            <p className="text-[10px] text-gray-500 uppercase tracking-tighter">Chief Manager</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};

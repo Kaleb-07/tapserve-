@@ -1,0 +1,73 @@
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Category {
+  id        String     @id @default(uuid())
+  name      String
+  order     Int        @default(0)
+  items     MenuItem[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model MenuItem {
+  id            String      @id @default(uuid())
+  name          String
+  description   String?
+  price         Float
+  image         String?
+  ingredients   String?     // Comma-separated or JSON list
+  categoryId    String
+  category      Category    @relation(fields: [categoryId], references: [id])
+  orderItems    OrderItem[]
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model Order {
+  id          String      @id @default(uuid())
+  sourceType  String      // Table, Room, Event, Delivery
+  sourceId    String?     // e.g., "5", "101", "Gala-Event"
+  totalPrice  Float
+  status      String      @default("PENDING") // PENDING, PREPARING, READY, DELIVERED
+  notes       String?     // Special instructions for the entire order
+  items       OrderItem[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model OrderItem {
+  id             String   @id @default(uuid())
+  orderId        String
+  order          Order    @relation(fields: [orderId], references: [id])
+  menuItemId     String
+  menuItem       MenuItem @relation(fields: [menuItemId], references: [id])
+  quantity       Int      @default(1)
+  priceAtOrder   Float    // Historical price
+  customizations String?  // JSON string of selected options
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model Source {
+  id          String   @id @default(uuid())
+  type        String   // TABLE, ROOM, EVENT, DELIVERY
+  identifier  String   // e.g. "Table 5"
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Admin {
+  id        String   @id @default(uuid())
+  username  String   @unique
+  password  String
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

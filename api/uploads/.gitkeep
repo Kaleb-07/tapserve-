@@ -1,0 +1,3 @@
+# This directory stores uploaded menu item images at runtime.
+# It is intentionally kept in version control (via this file) so the
+# directory exists on a fresh clone, but actual image files are gitignored.
