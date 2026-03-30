@@ -110,6 +110,7 @@ export const ManualOrderModal: React.FC<ManualOrderModalProps> = ({ isOpen, onCl
   const getFilteredItems = () => {
     const allItems = categories.flatMap(c => c.items.map(i => ({ ...i, categoryName: c.name })));
     return allItems
+      .filter(i => i.inStock !== false)
       .filter(i => activeCategory === 'all' || i.categoryId === activeCategory)
       .filter(i => i.name.toLowerCase().includes(searchTerm.toLowerCase()));
   };
@@ -446,7 +447,7 @@ export const ManualOrderModal: React.FC<ManualOrderModalProps> = ({ isOpen, onCl
                               <p className="font-bold text-white text-sm">{item.name}</p>
                               {item.excludedIngredients && item.excludedIngredients.length > 0 && (
                                 <p className="text-[10px] text-red-400 italic mt-0.5 font-bold uppercase tracking-widest">
-                                  No {item.excludedIngredients.join(', ')}
+                                  NO {item.excludedIngredients.join(' • NO ')}
                                 </p>
                               )}
                               <p className="text-[10px] text-gray-500 mt-0.5">Unit: ${item.price.toFixed(2)}</p>
@@ -522,7 +523,7 @@ export const ManualOrderModal: React.FC<ManualOrderModalProps> = ({ isOpen, onCl
                     </div>
                     {item.excludedIngredients && item.excludedIngredients.length > 0 && (
                       <p className="text-[9px] text-red-400/80 italic pl-4 font-bold uppercase leading-tight">
-                        No {item.excludedIngredients.join(', ')}
+                        NO {item.excludedIngredients.join(' • NO ')}
                       </p>
                     )}
                   </div>
@@ -657,7 +658,7 @@ export const ManualOrderModal: React.FC<ManualOrderModalProps> = ({ isOpen, onCl
                 {excludedIngredients.length > 0 && (
                   <div className="mt-4 p-3 bg-red-500/5 border border-red-500/20 rounded-xl">
                     <p className="text-[10px] font-bold text-red-400 uppercase tracking-widest">
-                      Will exclude: {excludedIngredients.join(', ')}
+                      Will exclude: {excludedIngredients.join(' • ')}
                     </p>
                   </div>
                 )}

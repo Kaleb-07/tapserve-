@@ -19,10 +19,11 @@ model Category {
 model MenuItem {
   id            String      @id @default(uuid())
   name          String
-  description   String?
+  description   String?     @db.Text
   price         Float
   image         String?
-  ingredients   String?     // Comma-separated or JSON list
+  ingredients   String?     @db.Text
+  inStock       Boolean     @default(true)
   categoryId    String
   category      Category    @relation(fields: [categoryId], references: [id])
   orderItems    OrderItem[]
@@ -36,7 +37,7 @@ model Order {
   sourceId    String?     // e.g., "5", "101", "Gala-Event"
   totalPrice  Float
   status      String      @default("PENDING") // PENDING, PREPARING, READY, DELIVERED
-  notes       String?     // Special instructions for the entire order
+  notes       String?     @db.Text // Special instructions for the entire order
   items       OrderItem[]
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
@@ -50,7 +51,7 @@ model OrderItem {
   menuItem       MenuItem @relation(fields: [menuItemId], references: [id])
   quantity       Int      @default(1)
   priceAtOrder   Float    // Historical price
-  customizations String?  // JSON string of selected options
+  customizations String?  @db.Text // JSON string of selected options
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 }
@@ -70,4 +71,12 @@ model Admin {
   name      String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Settings {
+  id           String   @id @default(uuid())
+  hotelName    String   @default("Nora Luxe")
+  currency     String   @default("USD")
+  supportEmail String?
+  updatedAt    DateTime @updatedAt
 }

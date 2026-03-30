@@ -1,14 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useStore } from '../store/useStore';
 import { Lock, User, Key, Loader2, Star } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export const LoginPage: React.FC = () => {
-  const { login } = useStore();
+  const { login, settings, fetchSettings } = useStore();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    fetchSettings();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,7 +46,9 @@ export const LoginPage: React.FC = () => {
           >
             <Lock className="text-luxury-gold" size={32} />
           </motion.div>
-          <h1 className="text-3xl font-serif font-bold gold-text mb-2">NORA LUXE</h1>
+          <h1 className="text-3xl font-serif font-bold gold-text mb-2 text-center uppercase tracking-widest leading-relaxed">
+            {settings?.hotelName || 'NORA LUXE'}
+          </h1>
           <p className="text-[10px] text-luxury-gold uppercase tracking-[0.3em] font-bold opacity-70">Administrative Gateway</p>
         </div>
 

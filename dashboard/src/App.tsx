@@ -11,6 +11,9 @@ import { useStore } from './store/useStore';
 const App: React.FC = () => {
   const { token, checkAuth } = useStore();
   const [activeTab, setActiveTab] = React.useState('dashboard');
+  const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
+
+  const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
   React.useEffect(() => {
     checkAuth();
@@ -36,13 +39,23 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-luxury-black font-sans text-gray-200">
-      <Sidebar activeId={activeTab} onSetTab={setActiveTab} />
+    <div className="flex min-h-screen bg-luxury-black font-sans text-gray-200 overflow-x-hidden">
+      {/* Sidebar - fixed and responsive handling */}
+      <Sidebar 
+        activeId={activeTab} 
+        onSetTab={(id) => { setActiveTab(id); setIsSidebarOpen(false); }} 
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+      />
       
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <Topbar title={activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} />
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col min-w-0 md:pl-64 transition-all duration-300">
+        <Topbar 
+          title={activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} 
+          onToggleSidebar={toggleSidebar}
+        />
         
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1">
           {renderContent()}
         </main>
       </div>

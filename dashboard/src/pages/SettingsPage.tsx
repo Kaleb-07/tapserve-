@@ -1,26 +1,42 @@
 import React, { useState } from 'react';
-import { 
-  Settings as SettingsIcon, 
-  User, 
-  Lock, 
+import {
   Globe, 
-  Bell, 
-  Shield,
   Save,
   Hotel
 } from 'lucide-react';
+import { useStore } from '../store/useStore';
 
 export const SettingsPage: React.FC = () => {
-  const [hotelName, setHotelName] = useState('Nora Luxury Resort');
+  const { settings, fetchSettings, updateSettings } = useStore();
+  const [hotelName, setHotelName] = useState('NORA LUXE');
   const [currency, setCurrency] = useState('USD');
+  const [supportEmail, setSupportEmail] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
-  const handleSave = () => {
+  React.useEffect(() => {
+    fetchSettings();
+  }, []);
+
+  React.useEffect(() => {
+    if (settings) {
+      setHotelName(settings.hotelName || 'NORA LUXE');
+      setCurrency(settings.currency || 'USD');
+      setSupportEmail(settings.supportEmail || '');
+    }
+  }, [settings]);
+
+  const handleSave = async () => {
     setIsSaving(true);
-    setTimeout(() => {
-      setIsSaving(false);
+    try {
+      await updateSettings({ hotelName, currency, supportEmail });
       alert('Settings saved successfully');
-    }, 1000);
+    } catch (err: any) {
+      const msg = err.response?.data?.error || err.message || 'Unknown error';
+      alert(`Failed to save settings: ${msg}`);
+      console.error('Settings save error:', err);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -40,32 +56,8 @@ export const SettingsPage: React.FC = () => {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        {/* Navigation */}
-        <div className="space-y-2">
-          {[
-            { id: 'general', label: 'General', icon: SettingsIcon },
-            { id: 'profile', label: 'Profile', icon: User },
-            { id: 'security', label: 'Security', icon: Lock },
-            { id: 'localization', label: 'Localization', icon: Globe },
-            { id: 'notifications', label: 'Notifications', icon: Bell },
-          ].map((item) => (
-            <button
-              key={item.id}
-              className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${
-                item.id === 'general' 
-                ? 'bg-luxury-gold/10 text-luxury-gold border border-luxury-gold/20' 
-                : 'text-gray-400 hover:bg-luxury-gray/50 hover:text-gray-200'
-              }`}
-            >
-              <item.icon size={18} />
-              <span>{item.label}</span>
-            </button>
-          ))}
-        </div>
-
+      <div className="max-w-xl space-y-6">
         {/* Content */}
-        <div className="md:col-span-2 space-y-6">
           <div className="card-luxury p-8 space-y-6">
             <div className="flex items-center space-x-3 text-luxury-gold border-b border-luxury-border pb-4">
               <Hotel size={20} />
@@ -84,7 +76,13 @@ export const SettingsPage: React.FC = () => {
               </div>
               <div>
                 <label className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-2 block">Support Email</label>
-                <input type="email" placeholder="concierge@nora-resort.com" className="w-full bg-luxury-black border border-luxury-border rounded-lg px-4 py-3 text-sm focus:border-luxury-gold outline-none text-white" />
+                <input 
+                  type="email" 
+                  value={supportEmail}
+                  onChange={(e) => setSupportEmail(e.target.value)}
+                  placeholder="concierge@nora-resort.com" 
+                  className="w-full bg-luxury-black border border-luxury-border rounded-lg px-4 py-3 text-sm focus:border-luxury-gold outline-none text-white" 
+                />
               </div>
             </div>
           </div>
@@ -107,6 +105,7 @@ export const SettingsPage: React.FC = () => {
                   <option value="EUR">EUR (€)</option>
                   <option value="GBP">GBP (£)</option>
                   <option value="AED">AED (د.إ)</option>
+                  <option value="ETB">ETB (Br)</option>
                 </select>
               </div>
               <div>
@@ -119,18 +118,7 @@ export const SettingsPage: React.FC = () => {
               </div>
             </div>
           </div>
-
-          <div className="card-luxury p-8 space-y-4 border-emerald-500/20 bg-emerald-500/5">
-            <div className="flex items-center space-x-3 text-emerald-500">
-              <Shield size={20} />
-              <h3 className="font-bold text-sm uppercase tracking-widest">Active Protection</h3>
-            </div>
-            <p className="text-xs text-gray-400 leading-relaxed">
-              Your dashboard is currently secured with enterprise-grade encryption. All manual order modifications are logged for security audits.
-            </p>
-          </div>
         </div>
       </div>
-    </div>
   );
 };

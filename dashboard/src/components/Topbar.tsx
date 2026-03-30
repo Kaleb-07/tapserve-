@@ -1,11 +1,19 @@
-import { Bell, Search, User } from 'lucide-react';
+import { Bell, Search, User, Menu } from 'lucide-react';
 import { useStore } from '../store/useStore';
 
-export const Topbar: React.FC<{ title: string }> = ({ title }) => {
+export const Topbar: React.FC<{ title: string; onToggleSidebar: () => void }> = ({ title, onToggleSidebar }) => {
   const { user } = useStore();
   return (
-    <div className="h-20 bg-luxury-black border-b border-luxury-border flex items-center justify-between px-8 sticky top-0 z-10">
-      <h2 className="text-xl font-medium text-white">{title}</h2>
+    <div className="h-20 bg-luxury-black border-b border-luxury-border flex items-center justify-between px-4 md:px-8 sticky top-0 z-10">
+      <div className="flex items-center space-x-4">
+        <button 
+          onClick={onToggleSidebar}
+          className="p-2 text-gray-400 hover:text-luxury-gold transition-colors md:hidden"
+        >
+          <Menu size={24} />
+        </button>
+        <h2 className="text-xl font-medium text-white">{title}</h2>
+      </div>
 
       <div className="flex items-center space-x-6">
         <div className="relative group">

@@ -4,6 +4,7 @@ import {
   Search, UtensilsCrossed, Plus, Minus, CheckCircle
 } from 'lucide-react';
 import axios from 'axios';
+import { useStore } from '../store/useStore';
 
 const API_URL = 'http://localhost:3001/api';
 
@@ -43,6 +44,7 @@ const TEXT_GRAY = '#9ca3af';
 const GOLD_GRADIENT = 'linear-gradient(135deg, #d4af37 0%, #f1d592 50%, #aa8d2e 100%)';
 
 export const CustomerOrderPage: React.FC = () => {
+  const { settings, fetchSettings } = useStore();
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   
@@ -64,6 +66,7 @@ export const CustomerOrderPage: React.FC = () => {
   const [orderSuccess, setOrderSuccess] = useState<string | null>(null);
 
   useEffect(() => {
+    fetchSettings();
     axios.get(`${API_URL}/categories`).then(r => {
       setCategories(r.data);
     }).catch(console.error).finally(() => setLoading(false));
