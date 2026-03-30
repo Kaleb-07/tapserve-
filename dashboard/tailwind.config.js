@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: 'class',
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
@@ -8,13 +9,14 @@ export default {
     extend: {
       colors: {
         luxury: {
-          black: "#0a0a0a",
-          dark: "#121212",
-          gray: "#1a1a1a",
-          gold: "#d4af37",
-          goldLight: "#f1d592",
-          goldDark: "#aa8d2e",
-          border: "#2a2a2a",
+          black: "var(--lux-bg)",
+          dark: "var(--lux-dark)",
+          gray: "var(--lux-gray)",
+          gold: "var(--lux-gold)",
+          goldLight: "var(--lux-gold-light)",
+          border: "var(--lux-border)",
+          text: "var(--lux-text)",
+          textDim: "var(--lux-text-dim)",
         }
       },
       fontFamily: {
