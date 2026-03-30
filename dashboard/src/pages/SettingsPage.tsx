@@ -43,8 +43,8 @@ export const SettingsPage: React.FC = () => {
     <div className="p-8 max-w-4xl mx-auto space-y-8">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-white font-serif">Settings</h1>
-          <p className="text-gray-500 mt-1">Configure your dashboard and hotel preferences</p>
+          <h1 className="text-2xl font-bold text-luxury-text font-serif">Settings</h1>
+          <p className="text-luxury-textDim mt-1">Configure your dashboard and hotel preferences</p>
         </div>
         <button 
           onClick={handleSave}
@@ -66,22 +66,22 @@ export const SettingsPage: React.FC = () => {
             
             <div className="space-y-4">
               <div>
-                <label className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-2 block">Premium Venue Name</label>
+                <label className="text-[10px] text-luxury-textDim uppercase tracking-widest font-bold mb-2 block">Premium Venue Name</label>
                 <input 
                   type="text" 
                   value={hotelName}
                   onChange={(e) => setHotelName(e.target.value)}
-                  className="w-full bg-luxury-black border border-luxury-border rounded-lg px-4 py-3 text-sm focus:border-luxury-gold outline-none text-white" 
+                  className="w-full bg-luxury-black border border-luxury-border rounded-lg px-4 py-3 text-sm focus:border-luxury-gold outline-none text-luxury-text" 
                 />
               </div>
               <div>
-                <label className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-2 block">Support Email</label>
+                <label className="text-[10px] text-luxury-textDim uppercase tracking-widest font-bold mb-2 block">Support Email</label>
                 <input 
                   type="email" 
                   value={supportEmail}
                   onChange={(e) => setSupportEmail(e.target.value)}
                   placeholder="concierge@nora-resort.com" 
-                  className="w-full bg-luxury-black border border-luxury-border rounded-lg px-4 py-3 text-sm focus:border-luxury-gold outline-none text-white" 
+                  className="w-full bg-luxury-black border border-luxury-border rounded-lg px-4 py-3 text-sm focus:border-luxury-gold outline-none text-luxury-text" 
                 />
               </div>
             </div>

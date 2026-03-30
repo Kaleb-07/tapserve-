@@ -131,8 +131,8 @@ export const MenuPage: React.FC = () => {
     <div className="p-8 space-y-8">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-white font-serif">Menu Management</h1>
-          <p className="text-gray-500 mt-1">Manage categories and premium selections</p>
+          <h1 className="text-2xl font-bold text-luxury-text font-serif">Menu Management</h1>
+          <p className="text-luxury-textDim mt-1">Manage categories and premium selections</p>
         </div>
         <div className="flex space-x-3">
           <button
@@ -188,19 +188,19 @@ export const MenuPage: React.FC = () => {
             <div className="flex space-x-2">
               <button
                 onClick={() => { setEditingCat(category); setIsCatModalOpen(true); }}
-                className="p-1.5 text-gray-500 hover:text-white transition-colors"
+                className="p-1.5 text-luxury-textDim hover:text-luxury-text transition-colors"
               >
                 <Edit2 size={14} />
               </button>
               <button
                 onClick={() => handleDeleteCat(category.id)}
-                className="p-1.5 text-gray-500 hover:text-red-500 transition-colors"
+                className="p-1.5 text-luxury-textDim hover:text-red-500 transition-colors"
               >
                 <Trash2 size={14} />
               </button>
             </div>
             <div className="h-px flex-1 bg-luxury-border opacity-30"></div>
-            <p className="text-xs text-gray-500 uppercase tracking-widest">{category.items.length} Items</p>
+            <p className="text-xs text-luxury-textDim uppercase tracking-widest">{category.items.length} Items</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
