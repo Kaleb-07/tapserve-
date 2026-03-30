@@ -156,7 +156,8 @@ app.post('/api/items', authMiddleware, async (req, res) => {
         price: parseFloat(price),
         image,
         categoryId,
-        ingredients
+        ingredients,
+        inStock: true
       }
     });
     res.json(item);
@@ -176,7 +177,8 @@ app.patch('/api/items/:id', authMiddleware, async (req, res) => {
         price: price !== undefined ? parseFloat(price) : undefined, 
         image, 
         categoryId,
-        ingredients
+        ingredients,
+        inStock: inStock !== undefined ? inStock : undefined
       }
     });
     res.json(item);

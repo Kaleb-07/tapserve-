@@ -110,6 +110,7 @@ export const ManualOrderModal: React.FC<ManualOrderModalProps> = ({ isOpen, onCl
   const getFilteredItems = () => {
     const allItems = categories.flatMap(c => c.items.map(i => ({ ...i, categoryName: c.name })));
     return allItems
+      .filter(i => i.inStock !== false)
       .filter(i => activeCategory === 'all' || i.categoryId === activeCategory)
       .filter(i => i.name.toLowerCase().includes(searchTerm.toLowerCase()));
   };

@@ -23,6 +23,7 @@ model MenuItem {
   price         Float
   image         String?
   ingredients   String?     @db.Text
+  inStock       Boolean     @default(true)
   categoryId    String
   category      Category    @relation(fields: [categoryId], references: [id])
   orderItems    OrderItem[]
