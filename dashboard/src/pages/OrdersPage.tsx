@@ -1,7 +1,7 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useStore } from '../store/useStore';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, MapPin, CheckCircle, Package, PlayCircle, Loader2, PlusCircle, Star } from 'lucide-react';
+import { Clock, MapPin, Loader2, PlusCircle, Star, ChevronDown, ChevronUp } from 'lucide-react';
 import { ManualOrderModal } from '../components/ManualOrderModal';
 
 const statusColors = {
@@ -11,11 +11,120 @@ const statusColors = {
   DELIVERED: 'text-gray-500 border-gray-500/20 bg-gray-500/5',
 };
 
-const statusIcons = {
-  PENDING: Package,
-  PREPARING: Loader2,
-  READY: PlayCircle,
-  DELIVERED: CheckCircle,
+const OrderItemsCell = ({ items }: { items: any[] }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  if (!items || items.length === 0) return <span className="text-gray-500 text-xs italic">No items</span>;
+
+  return (
+    <div className="flex flex-col">
+      <div 
+        className="flex items-center space-x-2 cursor-pointer group hover:bg-luxury-black/40 p-2 -ml-2 rounded-lg transition-colors inline-flex w-max"
+        onClick={() => setIsExpanded(!isExpanded)}
+      >
+        <span className="text-sm font-bold text-luxury-gold group-hover:text-luxury-goldLight transition-colors">
+          {items.length} Item{items.length !== 1 ? 's' : ''}
+        </span>
+        <div className="bg-luxury-gray/20 p-1 rounded-full group-hover:bg-luxury-gray/40 transition-colors">
+          {isExpanded ? (
+            <ChevronUp size={12} className="text-gray-400 group-hover:text-white transition-colors" />
+          ) : (
+            <ChevronDown size={12} className="text-gray-400 group-hover:text-white transition-colors" />
+          )}
+        </div>
+      </div>
+
+      <AnimatePresence>
+        {isExpanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="overflow-hidden"
+          >
+            <div className="space-y-3 mt-3 pt-3 border-t border-luxury-border/30">
+              {items.map((item: any, idx: number) => (
+                <div key={idx} className="flex flex-col">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-luxury-gold font-bold text-xs">x{item.quantity}</span>
+                    <span className="text-sm font-medium text-gray-200">{item.menuItem.name}</span>
+                  </div>
+                  {item.customizations && (
+                    <div className="text-[10px] pl-5 mt-1">
+                      {(() => {
+                        try {
+                          let customs = JSON.parse(item.customizations);
+                          // Handle double-stringified JSON
+                          if (typeof customs === 'string') {
+                            customs = JSON.parse(customs);
+                          }
+                          
+                          if (typeof customs !== 'object' || customs === null) {
+                            return <span className="text-gray-500 italic block leading-tight">{item.customizations}</span>;
+                          }
+
+                          return (
+                            <div className="flex flex-col gap-1.5 mt-1">
+                              {customs.Excluded && Array.isArray(customs.Excluded) && (
+                                <span className="text-red-400 font-bold uppercase tracking-widest leading-tight block">
+                                  NO {customs.Excluded.join(' • NO ')}
+                                </span>
+                              )}
+                              
+                              <div className="flex flex-wrap gap-1">
+                                {Object.entries(customs).map(([key, val]: [string, any], i) => {
+                                  if (key === 'Excluded') return null;
+                                  return (
+                                    <span key={i} className="text-gray-400 italic bg-luxury-black px-2 py-0.5 rounded border border-luxury-border text-[9px]">
+                                      {key}: {val}
+                                    </span>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          );
+                        } catch (e) {
+                          return <span className="text-gray-500 italic block leading-tight">{item.customizations.replace(/[\{\}\[\]"\\']/g, ' ')}</span>;
+                        }
+                      })()}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+const ExpandableNoteCell = ({ note }: { note?: string }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  
+  if (!note) return <span className="text-xs text-gray-600 italic">None</span>;
+
+  // Assume approx 40 characters limit before needing to expand
+  const shouldTruncate = note.length > 40;
+
+  return (
+    <div className="flex flex-col items-start min-w-[150px] max-w-[250px]">
+      <span className="text-[9px] text-luxury-gold uppercase tracking-widest font-bold flex items-center mb-1">
+        <Star size={10} className="mr-1 inline" /> Note
+      </span>
+      <span className={`text-xs text-gray-300 italic ${!isExpanded && shouldTruncate ? 'line-clamp-2' : 'whitespace-normal'}`}>
+        "{note}"
+      </span>
+      {shouldTruncate && (
+        <button 
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="text-[9px] text-luxury-gold hover:text-luxury-goldLight uppercase tracking-widest mt-1.5 font-bold transition-colors inline-flex items-center"
+        >
+          {isExpanded ? 'View Less' : 'View More'}
+        </button>
+      )}
+    </div>
+  );
 };
 
 export const OrdersPage: React.FC = () => {
@@ -65,121 +174,98 @@ export const OrdersPage: React.FC = () => {
         onClose={() => setIsManualOrderModalOpen(false)} 
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-6">
-        <AnimatePresence mode="popLayout">
-          {orders.map((order) => (
-            <motion.div
-              key={order.id}
-              layout
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="card-luxury bg-luxury-dark/60 relative overflow-hidden group"
-            >
-              {/* Order Header */}
-              <div className="flex justify-between items-start mb-6">
-                <div>
-                  <div className="flex items-center space-x-2 text-xs text-luxury-gold uppercase tracking-tighter mb-1 font-semibold">
-                    <Clock size={12} />
-                    <span>{new Date(order.createdAt).toLocaleTimeString()}</span>
-                  </div>
-                  <h3 className="text-lg font-bold text-white">Order #{order.id.slice(-6).toUpperCase()}</h3>
-                </div>
-                <div className={`px-3 py-1.5 rounded-full border text-[10px] font-bold uppercase tracking-widest ${statusColors[order.status]}`}>
-                  {order.status}
-                </div>
-              </div>
-
-              {/* Source Info */}
-              <div className="flex items-center space-x-3 p-3 bg-luxury-gray/40 border border-luxury-border rounded-lg mb-6">
-                <div className="w-10 h-10 rounded-full bg-luxury-gold/10 flex items-center justify-center text-luxury-gold border border-luxury-gold/20">
-                  <MapPin size={20} />
-                </div>
-                <div>
-                  <p className="text-[10px] text-luxury-gold uppercase tracking-tighter font-semibold">{order.sourceType}</p>
-                  <p className="text-sm font-medium text-white">{order.sourceId || 'Regular'}</p>
-                </div>
-              </div>
-
-              {/* Items List */}
-              <div className="space-y-4 mb-6">
-                {order.items.map((item: any, idx: number) => (
-                  <div key={idx} className="flex justify-between items-start border-b border-luxury-border border-dashed pb-3 last:border-0">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-2">
-                        <span className="text-luxury-gold font-bold text-sm">x{item.quantity}</span>
-                        <p className="text-sm font-medium text-gray-200">{item.menuItem.name}</p>
+      <div className="overflow-x-auto bg-luxury-dark/60 rounded-2xl border border-luxury-border shadow-2xl">
+        <table className="w-full text-left border-collapse whitespace-nowrap">
+          <thead>
+            <tr className="border-b border-luxury-border text-[10px] uppercase tracking-widest text-luxury-gold bg-luxury-black">
+              <th className="p-4 font-bold">Order ID</th>
+              <th className="p-4 font-bold">Time</th>
+              <th className="p-4 font-bold">Location</th>
+              <th className="p-4 font-bold min-w-[250px]">Items</th>
+              <th className="p-4 font-bold">Notes</th>
+              <th className="p-4 font-bold">Total</th>
+              <th className="p-4 font-bold">Status</th>
+              <th className="p-4 font-bold text-right">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <AnimatePresence>
+              {orders.map((order) => (
+                <motion.tr
+                  key={order.id}
+                  layout
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  className="border-b border-luxury-border/50 hover:bg-luxury-gray/10 transition-colors group"
+                >
+                  <td className="p-4 text-sm font-bold text-white align-top">
+                    #{order.id.slice(-6).toUpperCase()}
+                  </td>
+                  <td className="p-4 align-top">
+                    <div className="flex items-center space-x-2 text-xs text-gray-400 font-medium">
+                      <Clock size={12} className="text-luxury-gold" />
+                      <span>{new Date(order.createdAt).toLocaleTimeString()}</span>
+                    </div>
+                  </td>
+                  <td className="p-4 align-top">
+                    <div className="flex items-center space-x-2 text-sm text-white font-medium">
+                      <div className="w-6 h-6 rounded-full bg-luxury-gold/10 flex items-center justify-center text-luxury-gold border border-luxury-gold/20">
+                        <MapPin size={12} />
                       </div>
-                      {item.customizations && (
-                        <div className="text-[10px] mt-1 pl-6 space-y-0.5">
-                          {(() => {
-                            try {
-                              const customs = JSON.parse(item.customizations);
-                              if (customs.Excluded) {
-                                return <p className="text-red-400 font-bold uppercase tracking-widest">NO {customs.Excluded.join(', ')}</p>;
-                              }
-                              return <p className="text-gray-500 italic">{Object.values(customs).join(', ')}</p>;
-                            } catch (e) {
-                              return <p className="text-gray-500 italic">{item.customizations}</p>;
-                            }
-                          })()}
-                        </div>
+                      <div className="flex flex-col">
+                        <span className="text-[9px] text-luxury-gold uppercase tracking-tighter leading-none mb-0.5">{order.sourceType}</span>
+                        <span className="leading-tight">{order.sourceId || 'Regular'}</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="p-4 whitespace-normal align-top">
+                    <OrderItemsCell items={order.items} />
+                  </td>
+                  <td className="p-4 whitespace-normal align-top">
+                    <ExpandableNoteCell note={order.notes} />
+                  </td>
+                  <td className="p-4 align-top">
+                    <span className="text-base font-serif font-bold text-luxury-gold">${order.totalPrice.toFixed(2)}</span>
+                  </td>
+                  <td className="p-4 align-top">
+                    <span className={`px-2.5 py-1.5 rounded-full border text-[9px] font-bold uppercase tracking-widest ${statusColors[order.status as keyof typeof statusColors] || statusColors.PENDING}`}>
+                      {order.status}
+                    </span>
+                  </td>
+                  <td className="p-4 text-right align-top">
+                    <div className="flex justify-end space-x-2">
+                      {order.status === 'PENDING' && (
+                        <button 
+                          onClick={() => updateOrderStatus(order.id, 'PREPARING')}
+                          className="px-3 py-1.5 bg-luxury-gold text-black rounded-lg text-[10px] uppercase tracking-widest font-bold hover:bg-luxury-goldLight transition-colors whitespace-nowrap shadow-lg shadow-luxury-gold/10"
+                        >
+                          Prepare
+                        </button>
+                      )}
+                      {order.status === 'PREPARING' && (
+                        <button 
+                          onClick={() => updateOrderStatus(order.id, 'READY')}
+                          className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-[10px] uppercase tracking-widest font-bold hover:bg-blue-500 transition-colors whitespace-nowrap shadow-lg shadow-blue-500/20"
+                        >
+                          Ready
+                        </button>
+                      )}
+                      {order.status === 'READY' && (
+                        <button 
+                          onClick={() => updateOrderStatus(order.id, 'DELIVERED')}
+                          className="px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-[10px] uppercase tracking-widest font-bold hover:bg-emerald-500 transition-colors whitespace-nowrap shadow-lg shadow-emerald-500/20"
+                        >
+                          Complete
+                        </button>
                       )}
                     </div>
-                    <p className="text-sm font-medium text-gray-400">
-                      ${(item.priceAtOrder * item.quantity).toFixed(2)}
-                    </p>
-                  </div>
-                ))}
-              </div>
-
-              {/* Order Notes */}
-              {order.notes && (
-                <div className="mb-6 p-4 bg-luxury-gold/5 border border-luxury-gold/10 rounded-2xl">
-                  <p className="text-[10px] text-luxury-gold uppercase tracking-widest font-bold mb-2 flex items-center">
-                    <Star size={12} className="mr-2 fill-luxury-gold/20" /> Special Instructions
-                  </p>
-                  <p className="text-xs text-gray-400 italic">"{order.notes}"</p>
-                </div>
-              )}
-
-              {/* Total & Actions */}
-              <div className="mt-auto pt-4 border-t border-luxury-border flex items-center justify-between">
-                <div>
-                  <p className="text-[10px] text-gray-500 uppercase tracking-tighter">Total Price</p>
-                  <p className="text-xl font-serif font-bold text-luxury-gold">${order.totalPrice.toFixed(2)}</p>
-                </div>
-                
-                <div className="flex space-x-2">
-                  {order.status === 'PENDING' && (
-                    <button 
-                      onClick={() => updateOrderStatus(order.id, 'PREPARING')}
-                      className="px-4 py-2 bg-luxury-gold text-black rounded text-xs font-bold hover:bg-luxury-goldLight transition-colors"
-                    >
-                      Prepare
-                    </button>
-                  )}
-                  {order.status === 'PREPARING' && (
-                    <button 
-                      onClick={() => updateOrderStatus(order.id, 'READY')}
-                      className="px-4 py-2 bg-blue-600 text-white rounded text-xs font-bold hover:bg-blue-500 transition-colors"
-                    >
-                      Ready to Serve
-                    </button>
-                  )}
-                  {order.status === 'READY' && (
-                    <button 
-                      onClick={() => updateOrderStatus(order.id, 'DELIVERED')}
-                      className="px-4 py-2 bg-emerald-600 text-white rounded text-xs font-bold hover:bg-emerald-500 transition-colors"
-                    >
-                      Complete
-                    </button>
-                  )}
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </AnimatePresence>
+                  </td>
+                </motion.tr>
+              ))}
+            </AnimatePresence>
+          </tbody>
+        </table>
       </div>
     </div>
   );

@@ -549,7 +549,7 @@ export const CustomerOrderPage: React.FC = () => {
                     <div className="flex flex-wrap gap-2 mb-3">
                       {item.excludedIngredients.length > 0 && (
                         <p className="text-[10px] uppercase font-bold tracking-widest text-red-500">
-                           No {item.excludedIngredients.join(', ')}
+                           NO {item.excludedIngredients.join(' • NO ')}
                         </p>
                       )}
                       {item.specialInstructions && (
