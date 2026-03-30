@@ -2,19 +2,22 @@ import React, { useEffect, useState, useRef } from 'react';
 import type { KeyboardEvent } from 'react';
 import axios from 'axios';
 import { useStore } from '../store/useStore';
-import { Plus, Edit2, Trash2, Image as ImageIcon, Filter, Upload, X } from 'lucide-react';
+import { Plus, Edit2, Trash2, Image as ImageIcon, Filter, Upload, X, Search } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export const MenuPage: React.FC = () => {
   const { categories, fetchCategories, addItem, updateItem, deleteItem, addCategory, updateCategory, deleteCategory, searchQuery, showConfirm, user } = useStore();
   const [selectedCategory, setSelectedCategory] = useState<string>('All Categories');
+  const [activeMealType, setActiveMealType] = useState<string>('LUNCH');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-  // Modals state
+  // Modals / Loading state
   const [isItemModalOpen, setIsItemModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
   const [isCatModalOpen, setIsCatModalOpen] = useState(false);
   const [editingCat, setEditingCat] = useState<any>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [catSearchQuery, setCatSearchQuery] = useState('');
 
   // Ingredient tag state
   const [ingredientTags, setIngredientTags] = useState<string[]>([]);
@@ -85,16 +88,23 @@ export const MenuPage: React.FC = () => {
       categoryId: formData.get('categoryId'),
     };
 
-    if (editingItem) {
-      await updateItem(editingItem.id, itemData);
-    } else {
-      await addItem(itemData);
+    setIsSaving(true);
+    try {
+      if (editingItem) {
+        await updateItem(editingItem.id, itemData);
+      } else {
+        await addItem(itemData);
+      }
+      setIsItemModalOpen(false);
+      setEditingItem(null);
+      setSelectedFile(null);
+      setIngredientTags([]);
+      setIngredientInput('');
+    } catch (err) {
+      console.error('Save failed:', err);
+    } finally {
+      setIsSaving(false);
     }
-    setIsItemModalOpen(false);
-    setEditingItem(null);
-    setSelectedFile(null);
-    setIngredientTags([]);
-    setIngredientInput('');
   };
 
   const handleSaveCat = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -102,17 +112,33 @@ export const MenuPage: React.FC = () => {
     const formData = new FormData(e.currentTarget);
     const catData = {
       name: formData.get('name'),
+      mealType: formData.get('mealType'),
       order: parseInt(formData.get('order') as string) || 0,
     };
 
-    if (editingCat) {
-      await updateCategory(editingCat.id, catData);
-    } else {
-      await addCategory(catData);
+    setIsSaving(true);
+    try {
+      if (editingCat) {
+        await updateCategory(editingCat.id, catData);
+      } else {
+        await addCategory(catData);
+        setSelectedCategory('All Categories'); // Reset filter so new category is visible
+      }
+      setIsCatModalOpen(false);
+      setEditingCat(null);
+    } catch (err) {
+      console.error('Category save failed:', err);
+    } finally {
+      setIsSaving(false);
     }
-    setIsCatModalOpen(false);
-    setEditingCat(null);
   };
+
+  const mealTypes = [
+    { id: 'BREAKFAST', label: 'Breakfast' },
+    { id: 'LUNCH', label: 'Lunch' },
+    { id: 'DINNER', label: 'Dinner' },
+    { id: 'ALL', label: 'All-Day' }
+  ];
 
   const handleDeleteItem = async (id: string) => {
     showConfirm(
@@ -137,6 +163,27 @@ export const MenuPage: React.FC = () => {
           <h1 className="text-2xl font-bold text-luxury-text font-serif">Menu Management</h1>
           <p className="text-luxury-textDim mt-1">Manage categories and premium selections</p>
         </div>
+        
+        {/* Meal Type Switcher */}
+        <div className="bg-luxury-dark/50 p-1 rounded-xl border border-luxury-border flex">
+          {mealTypes.map(mt => (
+            <button
+              key={mt.id}
+              onClick={() => {
+                setActiveMealType(mt.id);
+                setSelectedCategory('All Categories');
+              }}
+              className={`px-6 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-all ${
+                activeMealType === mt.id 
+                  ? 'bg-luxury-gold text-black shadow-lg shadow-luxury-gold/20' 
+                  : 'text-luxury-textDim hover:text-luxury-text'
+              }`}
+            >
+              {mt.label}
+            </button>
+          ))}
+        </div>
+
         <div className="flex space-x-3">
           {user?.role === 'ADMIN' && (
             <>
@@ -168,12 +215,35 @@ export const MenuPage: React.FC = () => {
             className="bg-luxury-black border border-luxury-border rounded-lg px-4 py-2 text-sm focus:border-luxury-gold outline-none cursor-pointer flex-1 md:flex-none"
           >
             <option>All Categories</option>
-            {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
+            {categories
+              .filter(c => {
+                const mt = c.mealType || 'ALL';
+                return activeMealType === 'ALL' || mt === activeMealType || mt === 'ALL';
+              })
+              .map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
           </select>
+        </div>
+        
+        <div className="flex-1 relative group w-full md:w-auto">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-luxury-textDim group-focus-within:text-luxury-gold transition-colors" size={16} />
+          <input
+            type="text"
+            placeholder="Search categories..."
+            value={catSearchQuery}
+            onChange={e => setCatSearchQuery(e.target.value)}
+            className="w-full bg-luxury-black/50 border border-luxury-border rounded-xl pl-10 pr-4 py-2 text-sm focus:border-luxury-gold outline-none transition-all"
+          />
         </div>
       </div>
 
-      {categories.filter(c => selectedCategory === 'All Categories' || c.name === selectedCategory).map((category, idx) => (
+      {categories
+        .filter(c => {
+          const mt = c.mealType || 'ALL';
+          return (activeMealType === 'ALL' || mt === activeMealType || mt === 'ALL');
+        })
+        .filter(c => selectedCategory === 'All Categories' || c.name === selectedCategory)
+        .filter(c => c.name.toLowerCase().includes(catSearchQuery.toLowerCase()))
+        .map((category, idx) => (
         <motion.div
           key={category.id}
           initial={{ opacity: 0, x: -20 }}
@@ -183,6 +253,9 @@ export const MenuPage: React.FC = () => {
         >
           <div className="flex items-center space-x-4">
             <h2 className="text-xl font-bold text-luxury-gold font-serif">{category.name}</h2>
+            <span className={`text-[8px] px-2 py-0.5 rounded-full border border-luxury-gold/30 text-luxury-gold font-bold uppercase tracking-widest bg-luxury-gold/5`}>
+              {category.mealType || 'ALL'}
+            </span>
             {user?.role === 'ADMIN' && (
               <div className="flex space-x-2">
                 <button
@@ -308,7 +381,9 @@ export const MenuPage: React.FC = () => {
                 <div>
                   <label className="text-xs text-gray-500 uppercase tracking-widest font-bold mb-1 block">Category</label>
                   <select name="categoryId" defaultValue={editingItem?.categoryId} required className="w-full bg-luxury-gray/20 border border-luxury-border rounded-lg px-4 py-2 text-white outline-none focus:border-luxury-gold">
-                    {categories.map(c => <option key={c.id} value={c.id} className="bg-luxury-black">{c.name}</option>)}
+                    {categories
+                      .filter(c => activeMealType === 'ALL' || c.mealType === activeMealType || c.mealType === 'ALL')
+                      .map(c => <option key={c.id} value={c.id} className="bg-luxury-black">{c.name}</option>)}
                   </select>
                 </div>
               </div>
@@ -357,7 +432,9 @@ export const MenuPage: React.FC = () => {
               </div>
               <div className="flex space-x-3 pt-4">
                 <button type="button" onClick={() => setIsItemModalOpen(false)} className="flex-1 py-3 border border-luxury-border rounded-xl text-gray-400 font-bold uppercase tracking-widest text-[10px]">Cancel</button>
-                <button type="submit" className="flex-1 py-3 bg-luxury-gold text-black rounded-xl font-bold uppercase tracking-widest text-[10px]">Save Selection</button>
+                <button type="submit" disabled={isSaving} className="flex-1 py-3 bg-luxury-gold text-black rounded-xl font-bold uppercase tracking-widest text-[10px] disabled:opacity-50">
+                  {isSaving ? 'Saving...' : 'Save Selection'}
+                </button>
               </div>
             </form>
           </motion.div>
@@ -375,15 +452,40 @@ export const MenuPage: React.FC = () => {
                 <input name="name" defaultValue={editingCat?.name} required className="w-full bg-luxury-gray/20 border border-luxury-border rounded-lg px-4 py-2 text-white outline-none focus:border-luxury-gold" />
               </div>
               <div>
+                <label className="text-xs text-gray-500 uppercase tracking-widest font-bold mb-1 block">Meal Type</label>
+                <select name="mealType" defaultValue={editingCat?.mealType || activeMealType} className="w-full bg-luxury-gray/20 border border-luxury-border rounded-lg px-4 py-2 text-white outline-none focus:border-luxury-gold">
+                  {mealTypes.map(mt => <option key={mt.id} value={mt.id} className="bg-luxury-black">{mt.label}</option>)}
+                </select>
+              </div>
+              <div>
                 <label className="text-xs text-gray-500 uppercase tracking-widest font-bold mb-1 block">Display Order</label>
                 <input name="order" type="number" defaultValue={editingCat?.order} className="w-full bg-luxury-gray/20 border border-luxury-border rounded-lg px-4 py-2 text-white outline-none focus:border-luxury-gold" />
               </div>
               <div className="flex space-x-3 pt-4">
                 <button type="button" onClick={() => setIsCatModalOpen(false)} className="flex-1 py-3 border border-luxury-border rounded-xl text-gray-400 font-bold uppercase tracking-widest text-[10px]">Cancel</button>
-                <button type="submit" className="flex-1 py-3 bg-luxury-gold text-black rounded-xl font-bold uppercase tracking-widest text-[10px]">Save Category</button>
+                <button type="submit" disabled={isSaving} className="flex-1 py-3 bg-luxury-gold text-black rounded-xl font-bold uppercase tracking-widest text-[10px] disabled:opacity-50">
+                  {isSaving ? 'Saving...' : 'Save Category'}
+                </button>
               </div>
             </form>
           </motion.div>
+        </div>
+      )}
+      {categories.length === 0 && (
+        <div className="py-20 text-center border-2 border-dashed border-luxury-border rounded-[2rem] bg-luxury-dark/20">
+          <div className="w-16 h-16 bg-luxury-gold/10 rounded-full flex items-center justify-center mx-auto mb-4">
+             <Plus className="text-luxury-gold" size={32} />
+          </div>
+          <h3 className="text-lg font-bold text-luxury-text font-serif">Begin Your Menu</h3>
+          <p className="text-luxury-textDim text-sm max-w-xs mx-auto mt-2">Create your first category and add masterpieces to your luxury collection.</p>
+          <button onClick={() => setIsCatModalOpen(true)} className="mt-6 px-6 py-2 bg-luxury-gold text-black rounded-lg font-bold text-xs uppercase tracking-widest">Add Category</button>
+        </div>
+      )}
+
+      {categories.length > 0 && categories.filter(c => (activeMealType === 'ALL' || c.mealType === activeMealType || c.mealType === 'ALL')).filter(c => c.name.toLowerCase().includes(catSearchQuery.toLowerCase())).length === 0 && (
+        <div className="py-20 text-center">
+          <Search className="mx-auto mb-4 text-luxury-textDim opacity-20" size={48} />
+          <p className="text-sm uppercase tracking-[0.2em] font-bold text-luxury-textDim">No matching categories found</p>
         </div>
       )}
     </div>

@@ -10,6 +10,7 @@ generator client {
 model Category {
   id        String     @id @default(uuid())
   name      String
+  mealType  String     @default("ALL") // BREAKFAST, LUNCH, DINNER, ALL
   order     Int        @default(0)
   items     MenuItem[]
   createdAt DateTime   @default(now())
@@ -35,6 +36,7 @@ model Order {
   id            String      @id @default(uuid())
   sourceType    String      // Table, Room, Event, Delivery
   sourceId      String?     // e.g., "5", "101", "Gala-Event"
+  mealType      String?     // BREAKFAST, LUNCH, DINNER
   totalPrice    Float
   status        String      @default("PENDING") // PENDING, PREPARING, READY, DELIVERED
   paymentStatus String      @default("UNPAID")  // UNPAID, PAID

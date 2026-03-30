@@ -7,8 +7,6 @@ export const ConfirmModal: React.FC = () => {
   const { confirmModal, closeConfirm } = useStore();
   const { title, message, onConfirm, isOpen } = confirmModal;
 
-  if (!isOpen) return null;
-
   return (
     <AnimatePresence>
       {isOpen && (

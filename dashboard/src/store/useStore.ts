@@ -8,6 +8,7 @@ const socket = io('http://localhost:3001');
 interface Category {
   id: string;
   name: string;
+  mealType: string;
   items: MenuItem[];
 }
 
@@ -227,42 +228,72 @@ export const useStore = create<AppState>((set) => ({
   },
 
   addItem: async (itemData) => {
-    await axios.post(`${API_URL}/items`, itemData);
-    const { fetchItems, fetchCategories } = useStore.getState();
-    await fetchItems();
-    await fetchCategories();
+    try {
+      await axios.post(`${API_URL}/items`, itemData);
+      const { fetchItems, fetchCategories, showNotification } = useStore.getState();
+      await fetchItems();
+      await fetchCategories();
+      showNotification('Item added successfully', 'success');
+    } catch (err) {
+      useStore.getState().showNotification('Failed to add item', 'error');
+    }
   },
 
   updateItem: async (id, itemData) => {
-    await axios.patch(`${API_URL}/items/${id}`, itemData);
-    const { fetchItems, fetchCategories } = useStore.getState();
-    await fetchItems();
-    await fetchCategories();
+    try {
+      await axios.patch(`${API_URL}/items/${id}`, itemData);
+      const { fetchItems, fetchCategories, showNotification } = useStore.getState();
+      await fetchItems();
+      await fetchCategories();
+      showNotification('Item updated', 'success');
+    } catch (err) {
+      useStore.getState().showNotification('Update failed', 'error');
+    }
   },
 
   deleteItem: async (id) => {
-    await axios.delete(`${API_URL}/items/${id}`);
-    const { fetchItems, fetchCategories } = useStore.getState();
-    await fetchItems();
-    await fetchCategories();
+    try {
+      await axios.delete(`${API_URL}/items/${id}`);
+      const { fetchItems, fetchCategories, showNotification } = useStore.getState();
+      await fetchItems();
+      await fetchCategories();
+      showNotification('Item removed', 'info');
+    } catch (err) {
+      useStore.getState().showNotification('Delete failed', 'error');
+    }
   },
 
   addCategory: async (catData) => {
-    await axios.post(`${API_URL}/categories`, catData);
-    const { fetchCategories } = useStore.getState();
-    await fetchCategories();
+    try {
+      await axios.post(`${API_URL}/categories`, catData);
+      const { fetchCategories, showNotification } = useStore.getState();
+      await fetchCategories();
+      showNotification('Category created', 'success');
+    } catch (err) {
+      useStore.getState().showNotification('Failed to create category', 'error');
+    }
   },
 
   updateCategory: async (id, catData) => {
-    await axios.patch(`${API_URL}/categories/${id}`, catData);
-    const { fetchCategories } = useStore.getState();
-    await fetchCategories();
+    try {
+      await axios.patch(`${API_URL}/categories/${id}`, catData);
+      const { fetchCategories, showNotification } = useStore.getState();
+      await fetchCategories();
+      showNotification('Category updated', 'success');
+    } catch (err) {
+      useStore.getState().showNotification('Update failed', 'error');
+    }
   },
 
   deleteCategory: async (id) => {
-    await axios.delete(`${API_URL}/categories/${id}`);
-    const { fetchCategories } = useStore.getState();
-    await fetchCategories();
+    try {
+      await axios.delete(`${API_URL}/categories/${id}`);
+      const { fetchCategories, showNotification } = useStore.getState();
+      await fetchCategories();
+      showNotification('Category deleted', 'info');
+    } catch (err) {
+      useStore.getState().showNotification('Could not delete category', 'error');
+    }
   },
 
   fetchSettings: async () => {
