@@ -9,10 +9,12 @@ import { LoginPage } from './pages/LoginPage';
 import { StaffManagementPage } from './pages/StaffManagementPage';
 import { PaymentPage } from './pages/PaymentPage';
 import { ProfilePage } from './pages/ProfilePage';
+import { Toast } from './components/Toast';
+import { ConfirmModal } from './components/ConfirmModal';
 import { useStore } from './store/useStore';
 
 const App: React.FC = () => {
-  const { token, checkAuth, initTheme } = useStore();
+  const { token, checkAuth, initTheme, isSidebarCollapsed } = useStore();
   const [activeTab, setActiveTab] = React.useState('dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
 
@@ -58,8 +60,8 @@ const App: React.FC = () => {
         onClose={() => setIsSidebarOpen(false)}
       />
 
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 md:pl-64 transition-all duration-300">
+      {/* Main Content Area - Reactive Padding */}
+      <div className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${isSidebarCollapsed ? 'md:pl-20' : 'md:pl-64'}`}>
         <Topbar
           title={activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
           onToggleSidebar={toggleSidebar}
@@ -69,6 +71,8 @@ const App: React.FC = () => {
           {renderContent()}
         </main>
       </div>
+      <Toast />
+      <ConfirmModal />
     </div>
   );
 };

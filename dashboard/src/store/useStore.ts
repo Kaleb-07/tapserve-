@@ -86,6 +86,16 @@ interface AppState {
   // Search state
   searchQuery: string;
   setSearchQuery: (query: string) => void;
+  // Notification state
+  notification: { message: string, type: 'success' | 'error' | 'info', isOpen: boolean };
+  showNotification: (message: string, type?: 'success' | 'error' | 'info') => void;
+  // Confirmation Modal state
+  confirmModal: { title: string, message: string, onConfirm: () => void, isOpen: boolean };
+  showConfirm: (title: string, message: string, onConfirm: () => void) => void;
+  closeConfirm: () => void;
+  // Sidebar reactivity
+  isSidebarCollapsed: boolean;
+  toggleSidebarCollapse: () => void;
 }
 
 export const useStore = create<AppState>((set) => ({
@@ -303,6 +313,29 @@ export const useStore = create<AppState>((set) => ({
 
   searchQuery: '',
   setSearchQuery: (query) => set({ searchQuery: query }),
+
+  notification: { message: '', type: 'success', isOpen: false },
+  showNotification: (message, type = 'success') => {
+    set({ notification: { message, type, isOpen: true } });
+    setTimeout(() => {
+      set({ notification: { message: '', type: 'success', isOpen: false } });
+    }, 4000);
+  },
+
+  confirmModal: { title: '', message: '', onConfirm: () => {}, isOpen: false },
+  showConfirm: (title, message, onConfirm) => {
+    set({ confirmModal: { title, message, onConfirm, isOpen: true } });
+  },
+  closeConfirm: () => {
+    set({ confirmModal: { ...useStore.getState().confirmModal, isOpen: false } });
+  },
+
+  isSidebarCollapsed: localStorage.getItem('sidebar-collapsed') === 'true',
+  toggleSidebarCollapse: () => {
+    const newState = !useStore.getState().isSidebarCollapsed;
+    set({ isSidebarCollapsed: newState });
+    localStorage.setItem('sidebar-collapsed', String(newState));
+  },
 }));
 
 // Axios request interceptor for tokens

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   X, Search, Plus, Minus, ChevronRight, ChevronLeft,
-  ShoppingCart, Home, Star, MapPin, Loader2, UtensilsCrossed, User, ArrowRight
+  ShoppingCart, Home, Star, MapPin, Loader2, UtensilsCrossed, User, ArrowRight, DollarSign
 } from 'lucide-react';
 import { useStore } from '../store/useStore';
 
@@ -24,6 +24,7 @@ export const ManualOrderModal: React.FC<ManualOrderModalProps> = ({ isOpen, onCl
   const [excludedIngredients, setExcludedIngredients] = useState<string[]>([]);
   const [orderNotes, setOrderNotes] = useState('');
   const [activeCategory, setActiveCategory] = useState<string>('all');
+  const [paymentStatus, setPaymentStatus] = useState<'PAID' | 'UNPAID'>('UNPAID');
 
   useEffect(() => {
     if (isOpen) {
@@ -47,6 +48,7 @@ export const ManualOrderModal: React.FC<ManualOrderModalProps> = ({ isOpen, onCl
     setOrderNotes('');
     setSearchTerm('');
     setActiveCategory('all');
+    setPaymentStatus('UNPAID');
     setError(null);
   };
 
@@ -140,7 +142,8 @@ export const ManualOrderModal: React.FC<ManualOrderModalProps> = ({ isOpen, onCl
             : null
         })),
         totalPrice: calculateTotal(),
-        notes: orderNotes
+        notes: orderNotes,
+        paymentStatus
       };
       await createOrder(orderData);
       handleClose();
@@ -481,6 +484,31 @@ export const ManualOrderModal: React.FC<ManualOrderModalProps> = ({ isOpen, onCl
                           </div>
                         </div>
                       ))}
+                    </div>
+
+                    {/* Payment Toggle */}
+                    <div className="flex items-center justify-between p-4 bg-emerald-500/5 border border-emerald-500/20 rounded-2xl">
+                      <div className="flex items-center space-x-3">
+                        <div className={`p-2 rounded-lg ${paymentStatus === 'PAID' ? 'bg-emerald-500/20 text-emerald-500' : 'bg-rose-500/10 text-rose-500'}`}>
+                          <DollarSign size={18} />
+                        </div>
+                        <div>
+                          <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Payment Status</p>
+                          <p className={`text-sm font-bold ${paymentStatus === 'PAID' ? 'text-emerald-500' : 'text-rose-500'}`}>
+                            {paymentStatus === 'PAID' ? 'Already Received' : 'Collect on Delivery'}
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => setPaymentStatus(prev => prev === 'PAID' ? 'UNPAID' : 'PAID')}
+                        className={`px-4 py-2 rounded-xl text-[10px] uppercase tracking-widest font-bold transition-all ${
+                          paymentStatus === 'PAID'
+                          ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/20'
+                          : 'border border-luxury-gold/30 text-luxury-gold hover:bg-luxury-gold/5'
+                        }`}
+                      >
+                        {paymentStatus === 'PAID' ? '✓ Marked as Paid' : 'Mark as Paid'}
+                      </button>
                     </div>
 
                     {/* Notes */}

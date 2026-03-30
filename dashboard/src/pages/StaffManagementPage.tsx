@@ -4,7 +4,7 @@ import { Users, Plus, Edit, Trash2, X } from 'lucide-react';
 import { useStore } from '../store/useStore';
 
 export const StaffManagementPage: React.FC = () => {
-  const { users, fetchUsers, addUser, updateUser, deleteUser, user: currentUser } = useStore();
+  const { users, fetchUsers, addUser, updateUser, deleteUser, user: currentUser, showNotification, showConfirm } = useStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<any>(null);
   
@@ -42,19 +42,22 @@ export const StaffManagementPage: React.FC = () => {
         await addUser(formData);
       }
       setIsModalOpen(false);
+      showNotification(editingUser ? 'Staff updated' : 'Staff created', 'success');
     } catch (err: any) {
-      alert(err.response?.data?.error || 'Failed to save user');
+      showNotification(err.response?.data?.error || 'Failed to save user', 'error');
     }
   };
 
   const handleDelete = async (id: string) => {
     if (id === currentUser?.id) {
-      alert("You cannot delete yourself.");
+      showNotification("You cannot delete yourself.", 'error');
       return;
     }
-    if (confirm("Are you sure you want to permanently remove this staff member?")) {
-      await deleteUser(id);
-    }
+    showConfirm(
+      'Remove Staff Member',
+      'Are you sure you want to permanently remove this staff member? This action cannot be undone.',
+      () => deleteUser(id)
+    );
   };
 
   return (

@@ -3,6 +3,7 @@ import { useStore } from '../store/useStore';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Clock, MapPin, Loader2, PlusCircle, Star, ChevronDown, ChevronUp } from 'lucide-react';
 import { ManualOrderModal } from '../components/ManualOrderModal';
+import { DollarSign, CheckCircle2 } from 'lucide-react';
 
 const statusColors = {
   PENDING: 'text-amber-500 border-amber-500/20 bg-amber-500/5',
@@ -10,7 +11,6 @@ const statusColors = {
   READY: 'text-emerald-500 border-emerald-500/20 bg-emerald-500/5',
   DELIVERED: 'text-gray-500 border-gray-500/20 bg-gray-500/5',
 };
-
 const OrderItemsCell = ({ items }: { items: any[] }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -118,6 +118,7 @@ const ExpandableNoteCell = ({ note }: { note?: string }) => {
 export const OrdersPage: React.FC = () => {
   const { orders, fetchOrders, updateOrderStatus, loading, searchQuery } = useStore();
   const [isManualOrderModalOpen, setIsManualOrderModalOpen] = React.useState(false);
+  const [showHistory, setShowHistory] = React.useState(false);
 
   useEffect(() => {
     fetchOrders();
@@ -148,6 +149,18 @@ export const OrdersPage: React.FC = () => {
             <span>{orders.filter(o => o.status === 'PREPARING').length} Preparing</span>
           </div>
           <button 
+            onClick={() => setShowHistory(!showHistory)}
+            className={`flex items-center space-x-2 px-4 md:px-6 py-2 md:py-3 rounded-full font-bold text-[10px] md:text-sm shadow-lg transition-all ${
+              showHistory 
+              ? 'bg-luxury-gold text-black shadow-[0_0_20px_rgba(212,175,55,0.4)]' 
+              : 'bg-luxury-gray/40 text-luxury-gold border border-luxury-gold/30 hover:bg-luxury-gray/60'
+            }`}
+          >
+            <Clock size={16} className="md:w-5 md:h-5" />
+            <span>{showHistory ? 'All Orders' : 'Active Only'}</span>
+          </button>
+
+          <button 
             onClick={() => setIsManualOrderModalOpen(true)}
             className="btn-gold flex items-center space-x-3 px-4 md:px-6 py-2 md:py-3 rounded-full font-bold text-[10px] md:text-sm shadow-lg hover:shadow-xl transition-all"
           >
@@ -162,25 +175,31 @@ export const OrdersPage: React.FC = () => {
         onClose={() => setIsManualOrderModalOpen(false)} 
       />
 
-      <div className="overflow-x-auto bg-luxury-dark/60 rounded-2xl border border-luxury-border shadow-2xl">
-        <table className="w-full text-left border-collapse whitespace-nowrap">
+      <div className="overflow-x-auto bg-luxury-dark/60 rounded-2xl border border-luxury-border shadow-2xl custom-scrollbar">
+        <table className="w-full text-left border-collapse table-fixed min-w-[1200px]">
           <thead>
             <tr className="border-b border-luxury-border text-[10px] uppercase tracking-widest text-luxury-gold bg-luxury-black">
-              <th className="p-4 font-bold">Order ID</th>
-              <th className="p-4 font-bold">Time</th>
-              <th className="p-4 font-bold">Location</th>
-              <th className="p-4 font-bold min-w-[200px]">Items</th>
-              <th className="p-4 font-bold min-w-[200px]">Exclusions</th>
+              <th className="p-4 font-bold w-24">Order ID</th>
+              <th className="p-4 font-bold w-28">Time</th>
+              <th className="p-4 font-bold w-32">Location</th>
+              <th className="p-4 font-bold">Items</th>
+              <th className="p-4 font-bold">Exclusions</th>
               <th className="p-4 font-bold">Instruction</th>
-              <th className="p-4 font-bold">Total</th>
-              <th className="p-4 font-bold">Status</th>
-              <th className="p-4 font-bold text-right">Action</th>
+              <th className="p-4 font-bold w-24">Total</th>
+              <th className="p-4 font-bold w-32">Payment</th>
+              <th className="p-4 font-bold text-right w-32">Action</th>
             </tr>
           </thead>
           <tbody>
             <AnimatePresence>
               {orders
                 .filter(order => {
+                  // If not showing history, exclude completed orders from the active list
+                  if (!showHistory) {
+                    const isCompleted = order.status === 'DELIVERED' && order.paymentStatus === 'PAID';
+                    if (isCompleted) return false;
+                  }
+
                   const query = searchQuery.toLowerCase();
                   if (!query) return true;
                   const idMatch = order.id.toLowerCase().includes(query);
@@ -217,29 +236,47 @@ export const OrdersPage: React.FC = () => {
                       </div>
                     </div>
                   </td>
-                  <td className="p-4 whitespace-normal align-top">
+                  <td className="p-4 align-top overflow-hidden">
                     <OrderItemsCell items={order.items} />
                   </td>
-                  <td className="p-4 whitespace-normal align-top">
+                  <td className="p-4 align-top overflow-hidden">
                     <ExclusionsCell items={order.items} />
                   </td>
-                  <td className="p-4 whitespace-normal align-top">
+                  <td className="p-4 align-top overflow-hidden">
                     <ExpandableNoteCell note={order.notes} />
                   </td>
                   <td className="p-4 align-top">
                     <span className="text-base font-serif font-bold text-luxury-gold">${order.totalPrice.toFixed(2)}</span>
                   </td>
                   <td className="p-4 align-top">
-                    <span className={`px-2.5 py-1.5 rounded-full border text-[9px] font-bold uppercase tracking-widest ${statusColors[order.status as keyof typeof statusColors] || statusColors.PENDING}`}>
-                      {order.status}
-                    </span>
+                    {/* Interactive Payment Status Badge only */}
+                    <button
+                      disabled={order.paymentStatus === 'PAID'}
+                      onClick={() => updateOrderStatus(order.id, undefined, 'PAID')}
+                      className={`w-full group relative overflow-hidden px-2.5 py-1.5 rounded-lg border text-[8px] font-bold uppercase tracking-widest transition-all ${
+                        order.paymentStatus === 'PAID'
+                        ? 'text-emerald-500 border-emerald-500/20 bg-emerald-500/5 cursor-default'
+                        : 'text-rose-500 border-rose-500/20 bg-rose-500/5 hover:border-emerald-500/50 hover:bg-emerald-500/5 hover:text-emerald-400 cursor-pointer animate-pulse'
+                      }`}
+                    >
+                      <span className="relative z-10 flex items-center justify-center space-x-1">
+                        {order.paymentStatus === 'PAID' ? <CheckCircle2 size={10} /> : <DollarSign size={10} />}
+                        <span>{order.paymentStatus}</span>
+                      </span>
+                    </button>
                   </td>
                   <td className="p-4 text-right align-top">
-                    <div className="flex justify-end space-x-2">
-                      {order.status === 'PENDING' && (
+                    <div className="flex flex-col items-end space-y-2">
+                      {/* Order Status Badge moved here */}
+                      <span className={`px-2 py-0.5 w-max text-center rounded-lg border text-[7px] font-bold uppercase tracking-widest ${statusColors[order.status as keyof typeof statusColors] || statusColors.PENDING}`}>
+                        {order.status}
+                      </span>
+
+                      <div className="flex justify-end">
+                        {order.status === 'PENDING' && (
                         <button 
                           onClick={() => updateOrderStatus(order.id, 'PREPARING')}
-                          className="px-3 py-1.5 bg-luxury-gold text-black rounded-lg text-[10px] uppercase tracking-widest font-bold hover:bg-luxury-goldLight transition-colors whitespace-nowrap shadow-lg shadow-luxury-gold/10"
+                          className="px-3 py-1.5 bg-luxury-gold text-black rounded-lg text-[10px] uppercase tracking-widest font-bold hover:bg-luxury-goldLight transition-colors whitespace-nowrap"
                         >
                           Prepare
                         </button>
@@ -247,7 +284,7 @@ export const OrdersPage: React.FC = () => {
                       {order.status === 'PREPARING' && (
                         <button 
                           onClick={() => updateOrderStatus(order.id, 'READY')}
-                          className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-[10px] uppercase tracking-widest font-bold hover:bg-blue-500 transition-colors whitespace-nowrap shadow-lg shadow-blue-500/20"
+                          className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-[10px] uppercase tracking-widest font-bold hover:bg-blue-500 transition-colors whitespace-nowrap"
                         >
                           Ready
                         </button>
@@ -255,13 +292,14 @@ export const OrdersPage: React.FC = () => {
                       {order.status === 'READY' && (
                         <button 
                           onClick={() => updateOrderStatus(order.id, 'DELIVERED')}
-                          className="px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-[10px] uppercase tracking-widest font-bold hover:bg-emerald-500 transition-colors whitespace-nowrap shadow-lg shadow-emerald-500/20"
+                          className="px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-[10px] uppercase tracking-widest font-bold hover:bg-emerald-500 transition-colors whitespace-nowrap"
                         >
                           Complete
                         </button>
                       )}
                     </div>
-                  </td>
+                  </div>
+                </td>
                 </motion.tr>
               ))}
             </AnimatePresence>

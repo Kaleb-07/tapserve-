@@ -7,7 +7,7 @@ import {
 import { useStore } from '../store/useStore';
 
 export const SettingsPage: React.FC = () => {
-  const { settings, fetchSettings, updateSettings } = useStore();
+  const { settings, fetchSettings, updateSettings, showNotification } = useStore();
   const [hotelName, setHotelName] = useState('NORA LUXE');
   const [currency, setCurrency] = useState('USD');
   const [supportEmail, setSupportEmail] = useState('');
@@ -29,10 +29,10 @@ export const SettingsPage: React.FC = () => {
     setIsSaving(true);
     try {
       await updateSettings({ hotelName, currency, supportEmail });
-      alert('Settings saved successfully');
+      showNotification('Settings saved successfully', 'success');
     } catch (err: any) {
       const msg = err.response?.data?.error || err.message || 'Unknown error';
-      alert(`Failed to save settings: ${msg}`);
+      showNotification(`Failed to save settings: ${msg}`, 'error');
       console.error('Settings save error:', err);
     } finally {
       setIsSaving(false);

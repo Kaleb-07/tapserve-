@@ -6,7 +6,7 @@ import { Plus, Edit2, Trash2, Image as ImageIcon, Filter, Upload, X } from 'luci
 import { motion } from 'framer-motion';
 
 export const MenuPage: React.FC = () => {
-  const { categories, fetchCategories, addItem, updateItem, deleteItem, addCategory, updateCategory, deleteCategory, searchQuery } = useStore();
+  const { categories, fetchCategories, addItem, updateItem, deleteItem, addCategory, updateCategory, deleteCategory, searchQuery, showConfirm, user } = useStore();
   const [selectedCategory, setSelectedCategory] = useState<string>('All Categories');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
@@ -115,15 +115,19 @@ export const MenuPage: React.FC = () => {
   };
 
   const handleDeleteItem = async (id: string) => {
-    if (confirm('Are you sure you want to delete this item?')) {
-      await deleteItem(id);
-    }
+    showConfirm(
+      'Delete Menu Item',
+      'Are you sure you want to permanently remove this selection from the menu?',
+      () => deleteItem(id)
+    );
   };
 
   const handleDeleteCat = async (id: string) => {
-    if (confirm('Are you sure you want to delete this category? All items in it will be orphaned or deleted based on DB rules.')) {
-      await deleteCategory(id);
-    }
+    showConfirm(
+      'Delete Category',
+      'Are you sure you want to delete this whole category? All items inside will be archived or removed.',
+      () => deleteCategory(id)
+    );
   };
 
   return (
@@ -134,19 +138,23 @@ export const MenuPage: React.FC = () => {
           <p className="text-luxury-textDim mt-1">Manage categories and premium selections</p>
         </div>
         <div className="flex space-x-3">
-          <button
-            onClick={() => setIsCatModalOpen(true)}
-            className="px-4 py-2 text-xs font-bold text-luxury-gold border border-luxury-gold/20 rounded-lg hover:bg-luxury-gold/5 transition-all uppercase tracking-widest"
-          >
-            Add Category
-          </button>
-          <button
-            onClick={() => openItemModal()}
-            className="btn-gold flex items-center space-x-2"
-          >
-            <Plus size={18} />
-            <span>Add New Item</span>
-          </button>
+          {user?.role === 'ADMIN' && (
+            <>
+              <button
+                onClick={() => setIsCatModalOpen(true)}
+                className="px-4 py-2 text-xs font-bold text-luxury-gold border border-luxury-gold/20 rounded-lg hover:bg-luxury-gold/5 transition-all uppercase tracking-widest"
+              >
+                Add Category
+              </button>
+              <button
+                onClick={() => openItemModal()}
+                className="btn-gold flex items-center space-x-2"
+              >
+                <Plus size={18} />
+                <span>Add New Item</span>
+              </button>
+            </>
+          )}
         </div>
       </div>
 
@@ -175,20 +183,22 @@ export const MenuPage: React.FC = () => {
         >
           <div className="flex items-center space-x-4">
             <h2 className="text-xl font-bold text-luxury-gold font-serif">{category.name}</h2>
-            <div className="flex space-x-2">
-              <button
-                onClick={() => { setEditingCat(category); setIsCatModalOpen(true); }}
-                className="p-1.5 text-luxury-textDim hover:text-luxury-text transition-colors"
-              >
-                <Edit2 size={14} />
-              </button>
-              <button
-                onClick={() => handleDeleteCat(category.id)}
-                className="p-1.5 text-luxury-textDim hover:text-red-500 transition-colors"
-              >
-                <Trash2 size={14} />
-              </button>
-            </div>
+            {user?.role === 'ADMIN' && (
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => { setEditingCat(category); setIsCatModalOpen(true); }}
+                  className="p-1.5 text-luxury-textDim hover:text-luxury-text transition-colors"
+                >
+                  <Edit2 size={14} />
+                </button>
+                <button
+                  onClick={() => handleDeleteCat(category.id)}
+                  className="p-1.5 text-luxury-textDim hover:text-red-500 transition-colors"
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
+            )}
             <div className="h-px flex-1 bg-luxury-border opacity-30"></div>
             <p className="text-xs text-luxury-textDim uppercase tracking-widest">{category.items.length} Items</p>
           </div>
@@ -204,20 +214,22 @@ export const MenuPage: React.FC = () => {
                       <ImageIcon size={48} />
                     </div>
                   )}
-                  <div className="absolute top-4 right-4 flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button
-                      onClick={() => openItemModal(item)}
-                      className="p-2 bg-luxury-black rounded-full text-white hover:text-luxury-gold shadow-lg"
-                    >
-                      <Edit2 size={16} />
-                    </button>
-                    <button
-                      onClick={() => handleDeleteItem(item.id)}
-                      className="p-2 bg-luxury-black rounded-full text-white hover:text-red-500 shadow-lg"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
+                  {user?.role === 'ADMIN' && (
+                    <div className="absolute top-4 right-4 flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        onClick={() => openItemModal(item)}
+                        className="p-2 bg-luxury-black rounded-full text-white hover:text-luxury-gold shadow-lg"
+                      >
+                        <Edit2 size={16} />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteItem(item.id)}
+                        className="p-2 bg-luxury-black rounded-full text-white hover:text-red-500 shadow-lg"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  )}
                 </div>
                 <div className="p-5 flex-1 flex flex-col">
                   <div className="flex justify-between items-start mb-2">
