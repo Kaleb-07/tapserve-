@@ -41,6 +41,14 @@ export const CustomerOrderPage: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   
+  const getInitialMealType = () => {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 11) return 'BREAKFAST';
+    if (hour >= 11 && hour < 17) return 'LUNCH';
+    return 'DINNER';
+  };
+
+  const [activeMealType, setActiveMealType] = useState<string>(getInitialMealType());
   const [activeCategory, setActiveCategory] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   
@@ -61,10 +69,14 @@ export const CustomerOrderPage: React.FC = () => {
   useEffect(() => {
     fetchSettings();
     initTheme();
-    axios.get(`${API_URL}/categories`).then(r => {
-      setCategories(r.data);
-    }).catch(console.error).finally(() => setLoading(false));
-  }, [fetchSettings, initTheme]);
+    setLoading(true);
+    axios.get(`${API_URL}/categories?mealType=${activeMealType}`)
+      .then(r => {
+        setCategories(r.data);
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, [fetchSettings, initTheme, activeMealType]);
 
   const cartTotal = cart.reduce((s, i) => s + i.price * i.quantity, 0);
 
@@ -131,6 +143,7 @@ export const CustomerOrderPage: React.FC = () => {
     try {
       const res = await axios.post(`${API_URL}/orders`, {
         sourceType, sourceId,
+        mealType: activeMealType,
         items: cart.map(i => ({
           menuItemId: i.id,
           quantity: i.quantity,
@@ -185,7 +198,7 @@ export const CustomerOrderPage: React.FC = () => {
                 </p>
               </div>
               <h1 className="text-3xl md:text-4xl font-extrabold font-serif tracking-tight">
-                Welcome
+                Welcome to {activeMealType.toLowerCase()}
               </h1>
             </div>
             
@@ -211,46 +224,53 @@ export const CustomerOrderPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Categories Grid */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+          {/* Meal Times Grid (Primary) */}
+          <div className="grid grid-cols-3 gap-4 mb-8">
+            {['BREAKFAST', 'LUNCH', 'DINNER'].map(mt => (
+              <button
+                key={mt}
+                onClick={() => { setActiveMealType(mt); setActiveCategory('all'); }}
+                className={`flex flex-col items-center justify-center p-6 rounded-[2rem] transition-all duration-500 border ${
+                  activeMealType === mt 
+                  ? 'bg-luxury-gold text-black border-luxury-gold shadow-[0_0_30px_rgba(212,175,55,0.3)] scale-[1.02]' 
+                  : 'bg-luxury-dark border-luxury-border text-luxury-text hover:border-luxury-gold/50'
+                }`}
+              >
+                <div className={`p-4 rounded-2xl mb-3 ${activeMealType === mt ? 'bg-white/20' : 'bg-luxury-black'}`}>
+                  <UtensilsCrossed size={24} className={activeMealType === mt ? 'text-black' : 'text-luxury-gold'} />
+                </div>
+                <span className="text-sm font-bold uppercase tracking-[0.2em]">{mt}</span>
+                <span className={`text-[9px] mt-1 opacity-60 uppercase tracking-widest ${activeMealType === mt ? 'text-black' : ''}`}>
+                  {mt === 'BREAKFAST' ? '5 AM - 11 AM' : mt === 'LUNCH' ? '11 AM - 5 PM' : '5 PM - 12 AM'}
+                </span>
+              </button>
+            ))}
+          </div>
+
+          {/* Categories Grid (Secondary) */}
+          <div className="flex flex-wrap gap-3 mb-10 pb-4 border-b border-luxury-border">
             <button
               onClick={() => setActiveCategory('all')}
-              className={`flex items-center space-x-4 p-4 rounded-[1.5rem] transition-all duration-300 border ${
+              className={`px-6 py-3 rounded-full text-xs font-bold uppercase tracking-widest transition-all border ${
                 activeCategory === 'all' 
                 ? 'bg-luxury-gold text-black border-luxury-gold' 
-                : 'bg-luxury-dark border-luxury-border text-luxury-text'
+                : 'bg-luxury-dark border-luxury-border text-luxury-textDim hover:text-luxury-text'
               }`}
             >
-              <div className={`p-3 rounded-2xl ${activeCategory === 'all' ? 'bg-white/20' : 'bg-luxury-gray'}`}>
-                <UtensilsCrossed size={20} className={activeCategory === 'all' ? 'text-black' : 'text-luxury-gold'} />
-              </div>
-              <div className="text-left">
-                <span className="block text-sm font-bold">All Collections</span>
-                <span className={`block text-[10px] uppercase tracking-widest ${activeCategory === 'all' ? 'text-black/70' : 'text-luxury-textDim'}`}>
-                  {categories.flatMap(c => c.items).length} items
-                </span>
-              </div>
+              All {activeMealType.toLowerCase()}
             </button>
             
             {categories.map(cat => (
               <button
                 key={cat.id}
                 onClick={() => setActiveCategory(cat.id)}
-                className={`flex items-center space-x-4 p-4 rounded-[1.5rem] transition-all duration-300 border ${
+                className={`px-6 py-3 rounded-full text-xs font-bold uppercase tracking-widest transition-all border ${
                   activeCategory === cat.id 
                   ? 'bg-luxury-gold text-black border-luxury-gold' 
-                  : 'bg-luxury-dark border-luxury-border text-luxury-text'
+                  : 'bg-luxury-dark border-luxury-border text-luxury-textDim hover:text-luxury-text'
                 }`}
               >
-                <div className={`p-3 rounded-2xl ${activeCategory === cat.id ? 'bg-white/20' : 'bg-luxury-gray'}`}>
-                  <UtensilsCrossed size={20} className={activeCategory === cat.id ? 'text-black' : 'text-luxury-gold'} />
-                </div>
-                <div className="text-left">
-                  <span className="block text-sm font-bold">{cat.name}</span>
-                  <span className={`block text-[10px] uppercase tracking-widest ${activeCategory === cat.id ? 'text-black/70' : 'text-luxury-textDim'}`}>
-                    {cat.items.length} items
-                  </span>
-                </div>
+                {cat.name}
               </button>
             ))}
           </div>

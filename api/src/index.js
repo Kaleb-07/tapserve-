@@ -176,43 +176,100 @@ app.delete('/api/users/:id', authMiddleware, adminOnly, async (req, res) => {
   }
 });
 
-// 1. Categories
 app.get('/api/categories', async (req, res) => {
-  const categories = await prisma.category.findMany({
-    orderBy: { order: 'asc' },
-    include: { items: true },
-  });
-  res.json(categories);
+  const { mealType } = req.query;
+  
+  try {
+    const finalWhere = {};
+    if (mealType && mealType !== 'ALL') {
+      finalWhere.OR = [
+        { mealType: mealType },
+        { mealType: 'ALL' }
+      ];
+    }
+    const categories = await prisma.category.findMany({
+      where: finalWhere,
+      orderBy: { order: 'asc' },
+      include: { items: true },
+    });
+    res.json(categories);
+  } catch (dbErr) {
+    // Fallback if mealType column doesn't exist
+    const categories = await prisma.category.findMany({
+      orderBy: { order: 'asc' },
+      include: { items: true },
+    });
+    res.json(categories);
+  }
 });
 
 app.post('/api/categories', authMiddleware, async (req, res) => {
-  const { name, order } = req.body;
+  const { name, order, mealType } = req.body;
   try {
-    const category = await prisma.category.create({
-      data: { name, order: order || 0 }
-    });
-    res.json(category);
+    const data = { name, order: order || 0 };
+    // Only attempt to set mealType if it's provided, and we'll try to save it
+    // If the database isn't migrated, Prisma might throw an error here
+    try {
+      const category = await prisma.category.create({
+        data: { ...data, mealType: mealType || 'ALL' }
+      });
+      return res.json(category);
+    } catch (dbErr) {
+      // Fallback if mealType column doesn't exist yet
+      if (dbErr.code === 'P2002' || dbErr.message.includes('mealType')) {
+        const category = await prisma.category.create({ data });
+        return res.json(category);
+      }
+      throw dbErr;
+    }
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
 app.patch('/api/categories/:id', authMiddleware, async (req, res) => {
-  const { name, order } = req.body;
+  const { name, order, mealType } = req.body;
   try {
-    const category = await prisma.category.update({
-      where: { id: req.params.id },
-      data: { name, order }
-    });
-    res.json(category);
+    const data = {};
+    if (name) data.name = name;
+    if (order !== undefined) data.order = parseInt(order);
+    
+    try {
+      if (mealType) data.mealType = mealType;
+      const category = await prisma.category.update({
+        where: { id: req.params.id },
+        data
+      });
+      return res.json(category);
+    } catch (dbErr) {
+      if (dbErr.code === 'P2002' || dbErr.message.includes('mealType') || dbErr.message.includes('Unknown arg')) {
+        delete data.mealType;
+        const category = await prisma.category.update({
+          where: { id: req.params.id },
+          data
+        });
+        return res.json(category);
+      }
+      throw dbErr;
+    }
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
 app.delete('/api/categories/:id', authMiddleware, async (req, res) => {
+  const { id } = req.params;
   try {
-    await prisma.category.delete({ where: { id: req.params.id } });
+    // 1. Delete all items in this category first to avoid foreign key constraints
+    await prisma.menuItem.deleteMany({
+      where: { categoryId: id }
+    });
+    
+    // 2. Delete the category itself
+    await prisma.category.delete({
+      where: { id: id }
+    });
+    
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -287,11 +344,12 @@ app.get('/api/orders', authMiddleware, async (req, res) => {
 });
 
 app.post('/api/orders', async (req, res) => {
-  const { sourceType, sourceId, items, totalPrice, notes } = req.body;
+  const { sourceType, sourceId, mealType, items, totalPrice, notes } = req.body;
   const order = await prisma.order.create({
     data: {
       sourceType,
       sourceId,
+      mealType,
       totalPrice,
       status: 'PENDING',
       notes,
