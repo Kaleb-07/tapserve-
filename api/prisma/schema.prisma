@@ -21,7 +21,7 @@ model MenuItem {
   name          String
   description   String?     @db.Text
   price         Float
-  image         String?
+  image         String?     @db.LongText
   ingredients   String?     @db.Text
   inStock       Boolean     @default(true)
   categoryId    String

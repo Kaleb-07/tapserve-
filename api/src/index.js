@@ -33,15 +33,12 @@ if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
 
-// Multer Config
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, uploadDir),
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    cb(null, uniqueSuffix + path.extname(file.originalname));
-  }
+// Multer Config - Memory Storage for DB-backed images
+const storage = multer.memoryStorage();
+const upload = multer({ 
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
 });
-const upload = multer({ storage });
 
 app.use(cors());
 app.use(express.json());
@@ -260,13 +257,17 @@ app.patch('/api/orders/:id', authMiddleware, async (req, res) => {
 });
 
 
-// 8. Uploads
+// 8. Uploads (Database-backed Base64)
 app.post('/api/upload', authMiddleware, upload.single('image'), (req, res) => {
-  if (!req.file) return res.status(400).json({ error: 'No file' });
-  const host = req.headers.host || `localhost:${process.env.PORT || 3001}`;
-  const protocol = req.headers['x-forwarded-proto'] || 'http';
-  const url = `${protocol}://${host}/uploads/${req.file.filename}`;
-  res.json({ url });
+  if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+  
+  try {
+    const base64Image = req.file.buffer.toString('base64');
+    const dataUri = `data:${req.file.mimetype};base64,${base64Image}`;
+    res.json({ url: dataUri });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to process image' });
+  }
 });
 
 // 9. Settings
