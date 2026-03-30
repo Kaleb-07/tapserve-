@@ -64,6 +64,10 @@ interface AppState {
   fetchSettings: () => Promise<void>;
   updateSettings: (settingsData: any) => Promise<void>;
   setSettings: (settings: any) => void;
+  // Theme Actions
+  theme: 'light' | 'dark';
+  toggleTheme: () => void;
+  initTheme: () => void;
 }
 
 export const useStore = create<AppState>((set) => ({
@@ -215,6 +219,31 @@ export const useStore = create<AppState>((set) => ({
   },
 
   setSettings: (settings) => set({ settings }),
+
+  theme: (localStorage.getItem('luxury_theme') as 'light' | 'dark') || 'dark',
+
+  toggleTheme: () => {
+    set((state) => {
+      const newTheme = state.theme === 'light' ? 'dark' : 'light';
+      localStorage.setItem('luxury_theme', newTheme);
+      if (newTheme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+      return { theme: newTheme };
+    });
+  },
+
+  initTheme: () => {
+    const theme = (localStorage.getItem('luxury_theme') as 'light' | 'dark') || 'dark';
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    set({ theme });
+  },
 }));
 
 // Axios request interceptor for tokens

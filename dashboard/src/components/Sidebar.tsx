@@ -60,7 +60,7 @@ export const Sidebar: React.FC<{
                 className={`w-full flex items-center space-x-4 px-4 py-3 rounded-lg transition-all duration-300 ${
                   isActive 
                   ? 'bg-luxury-gold/10 text-luxury-gold border border-luxury-gold/20' 
-                  : 'text-gray-400 hover:bg-luxury-gray hover:text-gray-200'
+                  : 'text-luxury-textDim hover:bg-luxury-gray hover:text-luxury-text'
                 }`}
               >
                 <Icon size={20} />
@@ -79,7 +79,7 @@ export const Sidebar: React.FC<{
         <div className="p-4 border-t border-luxury-border">
           <button 
             onClick={() => { if(confirm('Are you sure you want to logout?')) logout(); }}
-            className="w-full flex items-center space-x-4 px-4 py-3 text-gray-400 hover:text-red-400 transition-colors"
+            className="w-full flex items-center space-x-4 px-4 py-3 text-luxury-textDim hover:text-red-400 transition-colors"
           >
             <LogOut size={20} />
             <span className="font-medium">Logout</span>

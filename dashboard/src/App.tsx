@@ -9,7 +9,7 @@ import { LoginPage } from './pages/LoginPage';
 import { useStore } from './store/useStore';
 
 const App: React.FC = () => {
-  const { token, checkAuth } = useStore();
+  const { token, checkAuth, initTheme } = useStore();
   const [activeTab, setActiveTab] = React.useState('dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
 
@@ -17,7 +17,8 @@ const App: React.FC = () => {
 
   React.useEffect(() => {
     checkAuth();
-  }, [checkAuth]);
+    initTheme();
+  }, [checkAuth, initTheme]);
 
   if (!token) {
     return <LoginPage />;

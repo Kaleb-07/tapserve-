@@ -1,8 +1,8 @@
-import { Bell, Search, User, Menu } from 'lucide-react';
+import { Bell, Search, User, Menu, Sun, Moon } from 'lucide-react';
 import { useStore } from '../store/useStore';
 
 export const Topbar: React.FC<{ title: string; onToggleSidebar: () => void }> = ({ title, onToggleSidebar }) => {
-  const { user } = useStore();
+  const { user, theme, toggleTheme } = useStore();
   return (
     <div className="h-20 bg-luxury-black border-b border-luxury-border flex items-center justify-between px-4 md:px-8 sticky top-0 z-10">
       <div className="flex items-center space-x-4">
@@ -12,7 +12,7 @@ export const Topbar: React.FC<{ title: string; onToggleSidebar: () => void }> = 
         >
           <Menu size={24} />
         </button>
-        <h2 className="text-xl font-medium text-white">{title}</h2>
+        <h2 className="text-xl font-medium text-luxury-text">{title}</h2>
       </div>
 
       <div className="flex items-center space-x-6">
@@ -25,9 +25,17 @@ export const Topbar: React.FC<{ title: string; onToggleSidebar: () => void }> = 
           />
         </div>
 
-        <button className="relative p-2 text-gray-400 hover:text-luxury-gold transition-colors">
+        <button className="relative p-2 text-luxury-textDim hover:text-luxury-gold transition-colors">
           <Bell size={20} />
           <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-luxury-black"></span>
+        </button>
+
+        <button 
+          onClick={toggleTheme}
+          className="p-2 text-luxury-textDim hover:text-luxury-gold transition-all duration-300 transform active:rotate-45"
+          title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
+        >
+          {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
         </button>
 
         <div className="h-8 w-px bg-luxury-border mx-2"></div>

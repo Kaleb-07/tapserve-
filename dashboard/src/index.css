@@ -4,8 +4,30 @@
 @config "../tailwind.config.js";
 
 @layer base {
+  :root {
+    --lux-bg: #fdfdfd;
+    --lux-dark: #ffffff;
+    --lux-gray: #f5f5f5;
+    --lux-border: #e5e5e5;
+    --lux-text: #111827;
+    --lux-text-dim: #6b7280;
+    --lux-gold: #d4af37;
+    --lux-gold-light: #f1d592;
+  }
+
+  .dark {
+    --lux-bg: #0a0a0a;
+    --lux-dark: #121212;
+    --lux-gray: #1a1a1a;
+    --lux-border: #2a2a2a;
+    --lux-text: #e5e7eb;
+    --lux-text-dim: #9ca3af;
+    --lux-gold: #d4af37;
+    --lux-gold-light: #f1d592;
+  }
+
   body {
-    @apply bg-luxury-black text-gray-200 font-sans;
+    @apply bg-luxury-black text-luxury-text font-sans transition-colors duration-300;
   }
 }
 
@@ -19,10 +41,10 @@
   }
 
   .btn-gold {
-    @apply bg-gold-gradient text-black font-semibold py-2 px-6 rounded-md transition-transform hover:scale-105 active:scale-95;
+    @apply bg-gold-gradient text-black font-semibold py-2 px-6 rounded-md transition-transform hover:scale-105 active:scale-95 shadow-lg shadow-luxury-gold/20;
   }
 
   .card-luxury {
-    @apply bg-luxury-dark border border-luxury-border rounded-xl p-6 hover:border-luxury-gold transition-colors duration-300;
+    @apply bg-luxury-dark border border-luxury-border rounded-xl p-6 hover:border-luxury-gold transition-all duration-300;
   }
 }

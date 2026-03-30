@@ -46,8 +46,8 @@ export const DashboardPage: React.FC<{ onSetTab?: (id: string) => void }> = ({ o
   return (
     <div className="p-4 md:p-8 space-y-6 md:space-y-8">
       <div>
-        <h1 className="text-xl md:text-2xl font-bold text-white font-serif">Luxury Overview</h1>
-        <p className="text-gray-500 text-xs md:text-sm mt-1">Real-time performance metrics</p>
+        <h1 className="text-xl md:text-2xl font-bold text-luxury-text font-serif">Luxury Overview</h1>
+        <p className="text-luxury-textDim text-xs md:text-sm mt-1">Real-time performance metrics</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
@@ -60,8 +60,8 @@ export const DashboardPage: React.FC<{ onSetTab?: (id: string) => void }> = ({ o
             className="card-luxury flex items-center justify-between group"
           >
             <div>
-              <p className="text-[10px] md:text-xs text-gray-400 font-medium uppercase tracking-widest">{stat.label}</p>
-              <h3 className="text-2xl md:text-3xl font-bold text-white mt-1">{stat.value}</h3>
+              <p className="text-[10px] md:text-xs text-luxury-textDim font-medium uppercase tracking-widest">{stat.label}</p>
+              <h3 className="text-2xl md:text-3xl font-bold text-luxury-text mt-1">{stat.value}</h3>
             </div>
             <div className={`p-3 md:p-4 rounded-xl bg-luxury-gray/40 border border-luxury-border shadow-inner ${stat.color} group-hover:border-luxury-gold transition-colors duration-300`}>
               <stat.icon size={24} className="md:w-7 md:h-7" />
@@ -76,7 +76,7 @@ export const DashboardPage: React.FC<{ onSetTab?: (id: string) => void }> = ({ o
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
             <div>
               <p className="text-[10px] text-luxury-gold uppercase tracking-widest font-bold">Revenue Report</p>
-              <h3 className="text-xl md:text-2xl font-bold text-white mt-1">Total Earnings</h3>
+              <h3 className="text-xl md:text-2xl font-bold text-luxury-text mt-1">Total Earnings</h3>
             </div>
             <div className="flex bg-luxury-gray/40 border border-luxury-border rounded-lg p-1">
               <button className="px-3 py-1 text-[10px] md:text-xs text-luxury-gold bg-luxury-gold/10 rounded-md">Today</button>
@@ -85,13 +85,13 @@ export const DashboardPage: React.FC<{ onSetTab?: (id: string) => void }> = ({ o
           </div>
           
           <div className="flex items-end space-x-3 md:space-x-4 mb-2">
-            <h2 className="text-3xl md:text-5xl font-serif font-bold text-white">${totalRevenue.toLocaleString()}</h2>
+            <h2 className="text-3xl md:text-5xl font-serif font-bold text-luxury-text">${totalRevenue.toLocaleString()}</h2>
             <div className="flex items-center text-emerald-500 text-xs md:text-sm font-medium mb-1">
               <ArrowUpRight size={14} className="md:w-4 md:h-4" />
               <span>+12.5%</span>
             </div>
           </div>
-          <p className="text-gray-500 text-xs md:text-sm">vs last month ($142,500)</p>
+          <p className="text-luxury-textDim text-xs md:text-sm">vs last month ($142,500)</p>
 
           <div className="mt-8 grid grid-cols-7 gap-2 items-end h-32">
             {[40, 60, 35, 85, 45, 90, 75].map((h, i) => (
@@ -109,7 +109,7 @@ export const DashboardPage: React.FC<{ onSetTab?: (id: string) => void }> = ({ o
 
         {/* Recent Activity Mini-Feed */}
         <div className="card-luxury">
-          <h3 className="text-lg font-bold text-white mb-6">Recent Orders</h3>
+          <h3 className="text-lg font-bold text-luxury-text mb-6">Recent Orders</h3>
           <div className="space-y-6">
             {orders.slice(0, 5).map((order) => {
               const StatusIcon = statusIcons[order.status] || Package;
@@ -119,9 +119,9 @@ export const DashboardPage: React.FC<{ onSetTab?: (id: string) => void }> = ({ o
                     <StatusIcon size={20} className={order.status === 'PREPARING' ? 'animate-spin' : ''} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-white truncate">Order #{order.id.slice(-6).toUpperCase()}</p>
+                    <p className="text-sm font-medium text-luxury-text truncate">Order #{order.id.slice(-6).toUpperCase()}</p>
                     <div className="flex items-center space-x-2">
-                      <p className="text-[10px] text-gray-500 capitalize">{order.sourceType} • {order.sourceId}</p>
+                      <p className="text-[10px] text-luxury-textDim capitalize">{order.sourceType} • {order.sourceId}</p>
                       {order.notes && <div className="w-1 h-1 rounded-full bg-amber-500" title="Special instructions"></div>}
                     </div>
                   </div>
