@@ -218,13 +218,13 @@ export const MenuPage: React.FC = () => {
                     <div className="absolute top-4 right-4 flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button
                         onClick={() => openItemModal(item)}
-                        className="p-2 bg-luxury-black rounded-full text-white hover:text-luxury-gold shadow-lg"
+                        className="p-2 bg-luxury-black/80 rounded-full text-luxury-text hover:text-luxury-gold shadow-lg"
                       >
                         <Edit2 size={16} />
                       </button>
                       <button
                         onClick={() => handleDeleteItem(item.id)}
-                        className="p-2 bg-luxury-black rounded-full text-white hover:text-red-500 shadow-lg"
+                        className="p-2 bg-luxury-black/80 rounded-full text-luxury-text hover:text-red-500 shadow-lg"
                       >
                         <Trash2 size={16} />
                       </button>
@@ -233,10 +233,10 @@ export const MenuPage: React.FC = () => {
                 </div>
                 <div className="p-5 flex-1 flex flex-col">
                   <div className="flex justify-between items-start mb-2">
-                    <h3 className="font-bold text-white text-lg">{item.name}</h3>
+                    <h3 className="font-bold text-luxury-text text-lg">{item.name}</h3>
                     <span className="text-luxury-gold font-bold text-lg font-serif tracking-tighter">${item.price.toFixed(2)}</span>
                   </div>
-                  <p className="text-sm text-gray-500 line-clamp-2 mb-4 leading-relaxed">{item.description}</p>
+                  <p className="text-sm text-luxury-textDim line-clamp-2 mb-4 leading-relaxed">{item.description}</p>
                   <div className="mt-auto flex items-center justify-between pt-4 border-t border-luxury-border">
                     <span className="text-[10px] text-luxury-gold uppercase tracking-widest font-bold">In Stock</span>
                     <label className="relative inline-flex items-center cursor-pointer">
@@ -260,17 +260,17 @@ export const MenuPage: React.FC = () => {
 
       {/* Item Modal */}
       {isItemModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-luxury-black/80 backdrop-blur-sm">
           <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-luxury-black border border-luxury-border p-8 rounded-2xl w-full max-w-md shadow-2xl">
-            <h2 className="text-xl font-bold text-white mb-6 font-serif">{editingItem ? 'Edit' : 'Add'} Menu Item</h2>
+            <h2 className="text-xl font-bold text-luxury-text mb-6 font-serif">{editingItem ? 'Edit' : 'Add'} Menu Item</h2>
             <form onSubmit={handleSaveItem} className="space-y-4">
               <div>
-                <label className="text-xs text-gray-500 uppercase tracking-widest font-bold mb-1 block">Name</label>
-                <input name="name" defaultValue={editingItem?.name} required className="w-full bg-luxury-gray/20 border border-luxury-border rounded-lg px-4 py-2 text-white outline-none focus:border-luxury-gold" />
+                <label className="text-xs text-luxury-textDim uppercase tracking-widest font-bold mb-1 block">Name</label>
+                <input name="name" defaultValue={editingItem?.name} required className="w-full bg-luxury-gray/20 border border-luxury-border rounded-lg px-4 py-2 text-luxury-text outline-none focus:border-luxury-gold" />
               </div>
               <div>
-                <label className="text-xs text-gray-500 uppercase tracking-widest font-bold mb-1 block">Description</label>
-                <textarea name="description" defaultValue={editingItem?.description} className="w-full bg-luxury-gray/20 border border-luxury-border rounded-lg px-4 py-2 text-white outline-none focus:border-luxury-gold h-20" />
+                <label className="text-xs text-luxury-textDim uppercase tracking-widest font-bold mb-1 block">Description</label>
+                <textarea name="description" defaultValue={editingItem?.description} className="w-full bg-luxury-gray/20 border border-luxury-border rounded-lg px-4 py-2 text-luxury-text outline-none focus:border-luxury-gold h-20" />
               </div>
               <div>
                 <label className="text-xs text-gray-500 uppercase tracking-widest font-bold mb-2 block">Ingredients</label>

@@ -8,7 +8,7 @@ export const Topbar: React.FC<{ title: string; onToggleSidebar: () => void }> = 
       <div className="flex items-center space-x-4">
         <button 
           onClick={onToggleSidebar}
-          className="p-2 text-gray-400 hover:text-luxury-gold transition-colors md:hidden"
+          className="p-2 text-luxury-textDim hover:text-luxury-gold transition-colors md:hidden"
         >
           <Menu size={24} />
         </button>
@@ -17,7 +17,7 @@ export const Topbar: React.FC<{ title: string; onToggleSidebar: () => void }> = 
 
       <div className="flex items-center space-x-6">
         <div className="relative group">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-luxury-gold transition-colors" size={18} />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-luxury-textDim group-focus-within:text-luxury-gold transition-colors" size={18} />
           <input 
             type="text" 
             placeholder="Search orders, menu..."
@@ -44,8 +44,8 @@ export const Topbar: React.FC<{ title: string; onToggleSidebar: () => void }> = 
             <User size={20} className="text-luxury-gold" />
           </div>
           <div className="text-left hidden md:block">
-            <p className="text-sm font-medium text-white">{user?.name || 'Admin User'}</p>
-            <p className="text-[10px] text-gray-500 uppercase tracking-tighter">Chief Manager</p>
+            <p className="text-sm font-medium text-luxury-text">{user?.name || 'Admin User'}</p>
+            <p className="text-[10px] text-luxury-textDim uppercase tracking-tighter">Chief Manager</p>
           </div>
         </div>
       </div>

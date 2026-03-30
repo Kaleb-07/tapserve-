@@ -37,7 +37,7 @@ export const Toast: React.FC = () => {
             <p className="text-xs uppercase tracking-[0.2em] font-bold text-luxury-gold mb-0.5 opacity-50">
               System {type}
             </p>
-            <p className="text-sm font-medium text-white">
+            <p className="text-sm font-medium text-luxury-text">
               {message}
             </p>
           </div>

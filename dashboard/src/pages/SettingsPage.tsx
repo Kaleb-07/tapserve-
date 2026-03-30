@@ -95,11 +95,11 @@ export const SettingsPage: React.FC = () => {
             
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-2 block">Currency</label>
+                <label className="text-[10px] text-luxury-textDim uppercase tracking-widest font-bold mb-2 block">Currency</label>
                 <select 
                   value={currency}
                   onChange={(e) => setCurrency(e.target.value)}
-                  className="w-full bg-luxury-black border border-luxury-border rounded-lg px-4 py-3 text-sm focus:border-luxury-gold outline-none text-white"
+                  className="w-full bg-luxury-black border border-luxury-border rounded-lg px-4 py-3 text-sm focus:border-luxury-gold outline-none text-luxury-text"
                 >
                   <option value="USD">USD ($)</option>
                   <option value="EUR">EUR (€)</option>
@@ -109,8 +109,8 @@ export const SettingsPage: React.FC = () => {
                 </select>
               </div>
               <div>
-                <label className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-2 block">Timezone</label>
-                <select className="w-full bg-luxury-black border border-luxury-border rounded-lg px-4 py-3 text-sm focus:border-luxury-gold outline-none text-white">
+                <label className="text-[10px] text-luxury-textDim uppercase tracking-widest font-bold mb-2 block">Timezone</label>
+                <select className="w-full bg-luxury-black border border-luxury-border rounded-lg px-4 py-3 text-sm focus:border-luxury-gold outline-none text-luxury-text">
                   <option>UTC +03:00 (Riyadh)</option>
                   <option>UTC +04:00 (Dubai)</option>
                   <option>UTC +00:00 (London)</option>

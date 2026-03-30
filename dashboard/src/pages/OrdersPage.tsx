@@ -100,7 +100,7 @@ const ExpandableNoteCell = ({ note }: { note?: string }) => {
       <span className="text-[9px] text-luxury-gold uppercase tracking-widest font-bold flex items-center mb-1">
         <Star size={10} className="mr-1 inline" /> Instruction
       </span>
-      <span className={`text-xs text-gray-300 italic ${!isExpanded && shouldTruncate ? 'line-clamp-2' : 'whitespace-normal'}`}>
+      <span className={`text-xs text-luxury-textDim italic ${!isExpanded && shouldTruncate ? 'line-clamp-2' : 'whitespace-normal'}`}>
         "{note}"
       </span>
       {shouldTruncate && (
@@ -142,11 +142,11 @@ export const OrdersPage: React.FC = () => {
         <div className="flex flex-wrap gap-3">
           <div className="card-luxury p-2 md:p-3 text-[10px] md:text-sm flex items-center space-x-2">
             <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></div>
-            <span>{orders.filter(o => o.status === 'PENDING').length} Pending</span>
+            <span className="text-luxury-text">{orders.filter(o => o.status === 'PENDING').length} Pending</span>
           </div>
           <div className="card-luxury p-2 md:p-3 text-[10px] md:text-sm flex items-center space-x-2">
             <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
-            <span>{orders.filter(o => o.status === 'PREPARING').length} Preparing</span>
+            <span className="text-luxury-text">{orders.filter(o => o.status === 'PREPARING').length} Preparing</span>
           </div>
           <button 
             onClick={() => setShowHistory(!showHistory)}
@@ -216,17 +216,17 @@ export const OrdersPage: React.FC = () => {
                   exit={{ opacity: 0, scale: 0.95 }}
                   className="border-b border-luxury-border/50 hover:bg-luxury-gray/10 transition-colors group"
                 >
-                  <td className="p-4 text-sm font-bold text-white align-top">
+                  <td className="p-4 text-sm font-bold text-luxury-text align-top">
                     #{order.id.slice(-6).toUpperCase()}
                   </td>
                   <td className="p-4 align-top">
-                    <div className="flex items-center space-x-2 text-xs text-gray-400 font-medium">
+                    <div className="flex items-center space-x-2 text-xs text-luxury-textDim font-medium">
                       <Clock size={12} className="text-luxury-gold" />
                       <span>{new Date(order.createdAt).toLocaleTimeString()}</span>
                     </div>
                   </td>
                   <td className="p-4 align-top">
-                    <div className="flex items-center space-x-2 text-sm text-white font-medium">
+                    <div className="flex items-center space-x-2 text-sm text-luxury-text font-medium">
                       <div className="w-6 h-6 rounded-full bg-luxury-gold/10 flex items-center justify-center text-luxury-gold border border-luxury-gold/20">
                         <MapPin size={12} />
                       </div>

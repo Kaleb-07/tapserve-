@@ -161,7 +161,7 @@ export const ManualOrderModal: React.FC<ManualOrderModalProps> = ({ isOpen, onCl
   const filteredItems = getFilteredItems();
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-luxury-black/90 backdrop-blur-md">
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -175,7 +175,7 @@ export const ManualOrderModal: React.FC<ManualOrderModalProps> = ({ isOpen, onCl
               <UtensilsCrossed size={20} />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-white font-serif tracking-tight">New Manual Order</h2>
+              <h2 className="text-lg font-bold text-luxury-text font-serif tracking-tight">New Manual Order</h2>
               <div className="flex items-center space-x-2 mt-0.5">
                 {[1, 2, 3].map(s => (
                   <div key={s} className="flex items-center space-x-1">
@@ -225,7 +225,7 @@ export const ManualOrderModal: React.FC<ManualOrderModalProps> = ({ isOpen, onCl
                       <input
                         type="text"
                         placeholder="Search menu items..."
-                        className="w-full bg-luxury-gray/20 border border-luxury-border rounded-xl pl-11 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-luxury-gold transition-all placeholder:text-gray-600"
+                        className="w-full bg-luxury-gray/20 border border-luxury-border rounded-xl pl-11 pr-4 py-2.5 text-sm text-luxury-text focus:outline-none focus:border-luxury-gold transition-all placeholder:text-luxury-textDim"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                       />
@@ -304,9 +304,9 @@ export const ManualOrderModal: React.FC<ManualOrderModalProps> = ({ isOpen, onCl
                               {/* Info */}
                               <div className="p-4 flex flex-col flex-1">
                                 <div className="flex-1">
-                                  <h4 className="font-bold text-white text-sm leading-tight mb-1">{item.name}</h4>
+                                  <h4 className="font-bold text-luxury-text text-sm leading-tight mb-1">{item.name}</h4>
                                   {item.description && (
-                                    <p className="text-[11px] text-gray-500 line-clamp-2 leading-relaxed">{item.description}</p>
+                                    <p className="text-[11px] text-luxury-textDim line-clamp-2 leading-relaxed">{item.description}</p>
                                   )}
                                 </div>
                                 <div className="flex items-center justify-between mt-3">
@@ -341,8 +341,8 @@ export const ManualOrderModal: React.FC<ManualOrderModalProps> = ({ isOpen, onCl
                 >
                   <div className="max-w-lg mx-auto space-y-8">
                     <div>
-                      <h3 className="text-xl font-bold text-white font-serif mb-2">Where are you ordering for?</h3>
-                      <p className="text-sm text-gray-500">Select the location type and enter the identifier.</p>
+                      <h3 className="text-xl font-bold text-luxury-text font-serif mb-2">Where are you ordering for?</h3>
+                      <p className="text-sm text-luxury-textDim">Select the location type and enter the identifier.</p>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
@@ -388,7 +388,7 @@ export const ManualOrderModal: React.FC<ManualOrderModalProps> = ({ isOpen, onCl
                           sourceType === 'Room' ? 'e.g. 204' :
                           sourceType === 'VIP' ? 'e.g. Suite A' : 'e.g. Ahmed'
                         }
-                        className="w-full bg-luxury-gray/20 border border-luxury-border rounded-2xl px-6 py-4 text-white text-xl font-bold focus:outline-none focus:border-luxury-gold transition-all placeholder:text-gray-700 font-serif"
+                        className="w-full bg-luxury-gray/20 border border-luxury-border rounded-2xl px-6 py-4 text-luxury-text text-xl font-bold focus:outline-none focus:border-luxury-gold transition-all placeholder:text-luxury-textDim font-serif"
                       />
                       {sourceId && (
                         <p className="mt-3 text-xs text-luxury-gold/70 font-bold uppercase tracking-widest">
@@ -411,7 +411,7 @@ export const ManualOrderModal: React.FC<ManualOrderModalProps> = ({ isOpen, onCl
                   className="flex-1 overflow-y-auto p-8 custom-scrollbar"
                 >
                   <div className="max-w-2xl mx-auto space-y-6">
-                    <h3 className="text-xl font-bold text-white font-serif">Review Order</h3>
+                    <h3 className="text-xl font-bold text-luxury-text font-serif">Review Order</h3>
 
                     {/* Location Summary */}
                     <div className="flex items-center justify-between p-4 bg-luxury-gold/5 border border-luxury-gold/20 rounded-2xl">
@@ -421,7 +421,7 @@ export const ManualOrderModal: React.FC<ManualOrderModalProps> = ({ isOpen, onCl
                         </div>
                         <div>
                           <p className="text-[10px] text-luxury-gold uppercase tracking-widest font-bold">{sourceType}</p>
-                          <p className="text-sm font-bold text-white">{sourceId}</p>
+                          <p className="text-sm font-bold text-luxury-text">{sourceId}</p>
                         </div>
                       </div>
                       <button
@@ -447,13 +447,13 @@ export const ManualOrderModal: React.FC<ManualOrderModalProps> = ({ isOpen, onCl
                               )}
                             </div>
                             <div>
-                              <p className="font-bold text-white text-sm">{item.name}</p>
+                              <p className="font-bold text-luxury-text text-sm">{item.name}</p>
                               {item.excludedIngredients && item.excludedIngredients.length > 0 && (
                                 <p className="text-[10px] text-red-400 italic mt-0.5 font-bold uppercase tracking-widest">
                                   NO {item.excludedIngredients.join(' • NO ')}
                                 </p>
                               )}
-                              <p className="text-[10px] text-gray-500 mt-0.5">Unit: ${item.price.toFixed(2)}</p>
+                              <p className="text-[10px] text-luxury-textDim mt-0.5">Unit: ${item.price.toFixed(2)}</p>
                             </div>
                           </div>
                           <div className="flex items-center space-x-4">
@@ -469,16 +469,16 @@ export const ManualOrderModal: React.FC<ManualOrderModalProps> = ({ isOpen, onCl
                               </button>
                             )}
                             <div className="flex items-center space-x-2 bg-luxury-black p-1.5 rounded-lg border border-luxury-border">
-                              <button onClick={() => updateQuantity(item.cartId, -1)} className="p-1 text-gray-400 hover:text-white">
+                              <button onClick={() => updateQuantity(item.cartId, -1)} className="p-1 text-luxury-textDim hover:text-luxury-text">
                                 <Minus size={13} />
                               </button>
-                              <span className="text-sm font-bold text-white min-w-[20px] text-center">{item.quantity}</span>
-                              <button onClick={() => updateQuantity(item.cartId, 1)} className="p-1 text-gray-400 hover:text-white">
+                              <span className="text-sm font-bold text-luxury-text min-w-[20px] text-center">{item.quantity}</span>
+                              <button onClick={() => updateQuantity(item.cartId, 1)} className="p-1 text-luxury-textDim hover:text-luxury-text">
                                 <Plus size={13} />
                               </button>
                             </div>
-                            <p className="font-bold text-white font-serif w-16 text-right">${(item.price * item.quantity).toFixed(2)}</p>
-                            <button onClick={() => removeFromCart(item.cartId)} className="text-gray-600 hover:text-red-500 transition-colors">
+                            <p className="font-bold text-luxury-text font-serif w-16 text-right">${(item.price * item.quantity).toFixed(2)}</p>
+                            <button onClick={() => removeFromCart(item.cartId)} className="text-luxury-textDim hover:text-red-500 transition-colors">
                               <X size={16} />
                             </button>
                           </div>
@@ -520,7 +520,7 @@ export const ManualOrderModal: React.FC<ManualOrderModalProps> = ({ isOpen, onCl
                         value={orderNotes}
                         onChange={(e) => setOrderNotes(e.target.value)}
                         placeholder="e.g. Allergies, special requests, gift notes..."
-                        className="w-full bg-black/40 border border-luxury-border rounded-2xl p-4 text-sm text-white placeholder:text-gray-700 focus:border-luxury-gold/50 outline-none transition-all resize-none h-24"
+                        className="w-full bg-luxury-black/10 border border-luxury-border rounded-2xl p-4 text-sm text-luxury-text placeholder:text-luxury-textDim focus:border-luxury-gold/50 outline-none transition-all resize-none h-24"
                       />
                     </div>
                   </div>
@@ -556,10 +556,10 @@ export const ManualOrderModal: React.FC<ManualOrderModalProps> = ({ isOpen, onCl
                     )}
                   </div>
                   <div className="flex items-center space-x-2 flex-shrink-0">
-                    <span className="text-white text-xs font-bold">${(item.price * item.quantity).toFixed(2)}</span>
+                    <span className="text-luxury-text text-xs font-bold">${(item.price * item.quantity).toFixed(2)}</span>
                     <button
                       onClick={() => removeFromCart(item.cartId)}
-                      className="text-gray-700 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                      className="text-luxury-textDim hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
                     >
                       <X size={12} />
                     </button>
@@ -579,7 +579,7 @@ export const ManualOrderModal: React.FC<ManualOrderModalProps> = ({ isOpen, onCl
             <div className="mt-6 pt-5 border-t border-luxury-border space-y-4">
               {cart.length > 0 && (
                 <div className="flex justify-between items-center">
-                  <span className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Total</span>
+                  <span className="text-[10px] text-luxury-textDim uppercase tracking-widest font-bold">Total</span>
                   <span className="text-xl font-serif font-bold text-luxury-gold">${calculateTotal().toFixed(2)}</span>
                 </div>
               )}
@@ -629,8 +629,8 @@ export const ManualOrderModal: React.FC<ManualOrderModalProps> = ({ isOpen, onCl
             >
               <div className="p-6 border-b border-luxury-border flex justify-between items-center bg-luxury-gray/10">
                 <div>
-                  <h3 className="text-xl font-bold text-white font-serif">{customizingItem.name}</h3>
-                  <p className="text-xs text-gray-500 uppercase tracking-widest font-bold mt-1">
+                  <h3 className="text-xl font-bold text-luxury-text font-serif">{customizingItem.name}</h3>
+                  <p className="text-xs text-luxury-textDim uppercase tracking-widest font-bold mt-1">
                     Uncheck ingredients to exclude from the dish
                   </p>
                 </div>
@@ -671,7 +671,7 @@ export const ManualOrderModal: React.FC<ManualOrderModalProps> = ({ isOpen, onCl
                         <span
                           onClick={() => toggleIngredient(name)}
                           className={`flex-1 text-sm font-bold uppercase tracking-wider ${
-                            isIncluded ? 'text-white' : 'text-gray-600 line-through'
+                            isIncluded ? 'text-luxury-text' : 'text-luxury-textDim line-through'
                           }`}
                         >
                           {name}

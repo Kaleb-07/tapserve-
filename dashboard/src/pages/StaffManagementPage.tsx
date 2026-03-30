@@ -100,7 +100,7 @@ export const StaffManagementPage: React.FC = () => {
               </div>
             </div>
             
-            <h3 className="text-xl font-bold font-serif">{u.name || u.username}</h3>
+            <h3 className="text-xl font-bold font-serif text-luxury-text">{u.name || u.username}</h3>
             <p className="text-sm text-luxury-textDim mt-1">@{u.username}</p>
             
             <div className="mt-4 inline-block px-3 py-1 rounded-full border border-luxury-gold/30 bg-luxury-gold/5 w-max">
@@ -115,14 +115,14 @@ export const StaffManagementPage: React.FC = () => {
       {/* Modal */}
       <AnimatePresence>
         {isModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-luxury-black/90 backdrop-blur-md">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
               className="w-full max-w-md bg-luxury-dark border border-luxury-border rounded-[2rem] overflow-hidden shadow-2xl"
             >
-              <div className="px-6 py-6 border-b border-luxury-border flex justify-between items-center bg-luxury-black/30">
+              <div className="px-6 py-6 border-b border-luxury-border flex justify-between items-center bg-luxury-gray/10">
                 <h2 className="text-2xl font-serif font-bold text-luxury-text">
                   {editingUser ? 'Edit Staff' : 'Add New Staff'}
                 </h2>

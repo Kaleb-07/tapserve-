@@ -99,7 +99,7 @@ export const Sidebar: React.FC<{
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: -10 }}
-                      className="font-medium whitespace-nowrap overflow-hidden text-sm"
+                      className="font-medium whitespace-nowrap overflow-hidden text-sm text-luxury-text"
                     >
                       {item.label}
                     </motion.span>
@@ -133,7 +133,7 @@ export const Sidebar: React.FC<{
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="font-medium whitespace-nowrap text-sm"
+                  className="font-medium whitespace-nowrap text-sm text-luxury-text"
                 >
                   Logout
                 </motion.span>

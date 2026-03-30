@@ -51,7 +51,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-luxury-black font-sans text-gray-200 overflow-x-hidden">
+    <div className="flex min-h-screen bg-luxury-black font-sans text-luxury-text overflow-x-hidden">
       {/* Sidebar - fixed and responsive handling */}
       <Sidebar
         activeId={activeTab}

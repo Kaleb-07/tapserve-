@@ -69,31 +69,31 @@ export const LoginPage: React.FC = () => {
             )}
 
             <div className="space-y-2">
-              <label className="text-[10px] text-gray-500 uppercase tracking-widest font-bold ml-1">Username</label>
+              <label className="text-[10px] text-luxury-textDim uppercase tracking-widest font-bold ml-1">Username</label>
               <div className="relative group">
-                <User className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 group-focus-within:text-luxury-gold transition-colors" size={18} />
+                <User className="absolute left-4 top-1/2 -translate-y-1/2 text-luxury-textDim group-focus-within:text-luxury-gold transition-colors" size={18} />
                 <input
                   type="text"
                   required
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   placeholder="admin"
-                  className="w-full bg-luxury-gray/10 border border-luxury-border rounded-xl pl-12 pr-4 py-4 text-white outline-none focus:border-luxury-gold/50 transition-all placeholder:text-gray-700"
+                  className="w-full bg-luxury-gray/10 border border-luxury-border rounded-xl pl-12 pr-4 py-4 text-luxury-text outline-none focus:border-luxury-gold/50 transition-all placeholder:text-luxury-textDim/50"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <label className="text-[10px] text-gray-500 uppercase tracking-widest font-bold ml-1">Password</label>
+              <label className="text-[10px] text-luxury-textDim uppercase tracking-widest font-bold ml-1">Password</label>
               <div className="relative group">
-                <Key className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 group-focus-within:text-luxury-gold transition-colors" size={18} />
+                <Key className="absolute left-4 top-1/2 -translate-y-1/2 text-luxury-textDim group-focus-within:text-luxury-gold transition-colors" size={18} />
                 <input
                   type="password"
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full bg-luxury-gray/10 border border-luxury-border rounded-xl pl-12 pr-4 py-4 text-white outline-none focus:border-luxury-gold/50 transition-all placeholder:text-gray-700"
+                  className="w-full bg-luxury-gray/10 border border-luxury-border rounded-xl pl-12 pr-4 py-4 text-luxury-text outline-none focus:border-luxury-gold/50 transition-all placeholder:text-luxury-textDim/50"
                 />
               </div>
             </div>
@@ -114,7 +114,7 @@ export const LoginPage: React.FC = () => {
           </form>
         </div>
 
-        <p className="text-center mt-8 text-[9px] text-gray-600 uppercase tracking-[0.2em]">
+        <p className="text-center mt-8 text-[9px] text-luxury-textDim uppercase tracking-[0.2em]">
           Secure Session &copy; 2026 LUXURY QR MENU SYSTEM
         </p>
       </motion.div>
