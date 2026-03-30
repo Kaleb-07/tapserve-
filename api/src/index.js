@@ -47,22 +47,38 @@ app.use(cors());
 app.use(express.json());
 app.use('/uploads', express.static(uploadDir));
 
-// Setup initial admin if it doesn't exist
-const setupAdmin = async () => {
-  const adminCount = await prisma.admin.count();
-  if (adminCount === 0) {
-    const hashedPassword = await bcrypt.hash('luxury123', 10);
-    await prisma.admin.create({
-      data: {
-        username: 'admin',
-        password: hashedPassword,
-        name: 'James Royale'
-      }
-    });
-    console.log('Default admin created: admin / luxury123');
+// Setup initial data if it doesn't exist
+const setupInitialData = async () => {
+  try {
+    const adminCount = await prisma.admin.count();
+    if (adminCount === 0) {
+      const hashedPassword = await bcrypt.hash('luxury123', 10);
+      await prisma.admin.create({
+        data: {
+          username: 'admin',
+          password: hashedPassword,
+          name: 'James Royale'
+        }
+      });
+      console.log('✅ Default admin created: admin / luxury123');
+    }
+
+    const settingsCount = await prisma.settings.count();
+    if (settingsCount === 0) {
+      await prisma.settings.create({
+        data: {
+          hotelName: 'NORA LUXE',
+          currency: 'USD',
+          supportEmail: 'concierge@nora-resort.com'
+        }
+      });
+      console.log('✅ Default settings created');
+    }
+  } catch (err) {
+    console.error('❌ CRITICAL ERROR initializing database:', err.message);
   }
 };
-setupAdmin();
+setupInitialData();
 
 // Auth Middleware
 const authMiddleware = (req, res, next) => {
@@ -251,6 +267,36 @@ app.post('/api/upload', authMiddleware, upload.single('image'), (req, res) => {
   const protocol = req.headers['x-forwarded-proto'] || 'http';
   const url = `${protocol}://${host}/uploads/${req.file.filename}`;
   res.json({ url });
+});
+
+// 9. Settings
+app.get('/api/settings', async (req, res) => {
+  try {
+    const settings = await prisma.settings.findFirst();
+    res.json(settings || {});
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.patch('/api/settings', authMiddleware, async (req, res) => {
+  const { hotelName, currency, supportEmail } = req.body;
+  try {
+    const settings = await prisma.settings.findFirst();
+    let updated;
+    if (!settings) {
+      updated = await prisma.settings.create({ data: { hotelName, currency, supportEmail } });
+    } else {
+      updated = await prisma.settings.update({
+        where: { id: settings.id },
+        data: { hotelName, currency, supportEmail }
+      });
+    }
+    io.emit('settings_updated', updated);
+    res.json(updated);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // Socket.io

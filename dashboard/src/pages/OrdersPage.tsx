@@ -23,7 +23,7 @@ const OrderItemsCell = ({ items }: { items: any[] }) => {
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <span className="text-sm font-bold text-luxury-gold group-hover:text-luxury-goldLight transition-colors">
-          {items.length} Item{items.length !== 1 ? 's' : ''}
+          {items.length === 1 ? items[0].menuItem.name : `${items.length} Items`}
         </span>
         <div className="bg-luxury-gray/20 p-1 rounded-full group-hover:bg-luxury-gray/40 transition-colors">
           {isExpanded ? (
@@ -42,59 +42,47 @@ const OrderItemsCell = ({ items }: { items: any[] }) => {
             exit={{ height: 0, opacity: 0 }}
             className="overflow-hidden"
           >
-            <div className="space-y-3 mt-3 pt-3 border-t border-luxury-border/30">
+            <div className="space-y-1.5 mt-3 pt-3 border-t border-luxury-border/30">
               {items.map((item: any, idx: number) => (
                 <div key={idx} className="flex flex-col">
                   <div className="flex items-center space-x-2">
-                    <span className="text-luxury-gold font-bold text-xs">x{item.quantity}</span>
+                    <span className="text-luxury-gold font-bold text-xs uppercase tracking-tighter w-6">x{item.quantity}</span>
                     <span className="text-sm font-medium text-gray-200">{item.menuItem.name}</span>
                   </div>
-                  {item.customizations && (
-                    <div className="text-[10px] pl-5 mt-1">
-                      {(() => {
-                        try {
-                          let customs = JSON.parse(item.customizations);
-                          // Handle double-stringified JSON
-                          if (typeof customs === 'string') {
-                            customs = JSON.parse(customs);
-                          }
-                          
-                          if (typeof customs !== 'object' || customs === null) {
-                            return <span className="text-gray-500 italic block leading-tight">{item.customizations}</span>;
-                          }
-
-                          return (
-                            <div className="flex flex-col gap-1.5 mt-1">
-                              {customs.Excluded && Array.isArray(customs.Excluded) && (
-                                <span className="text-red-400 font-bold uppercase tracking-widest leading-tight block">
-                                  NO {customs.Excluded.join(' • NO ')}
-                                </span>
-                              )}
-                              
-                              <div className="flex flex-wrap gap-1">
-                                {Object.entries(customs).map(([key, val]: [string, any], i) => {
-                                  if (key === 'Excluded') return null;
-                                  return (
-                                    <span key={i} className="text-gray-400 italic bg-luxury-black px-2 py-0.5 rounded border border-luxury-border text-[9px]">
-                                      {key}: {val}
-                                    </span>
-                                  );
-                                })}
-                              </div>
-                            </div>
-                          );
-                        } catch (e) {
-                          return <span className="text-gray-500 italic block leading-tight">{item.customizations.replace(/[\{\}\[\]"\\']/g, ' ')}</span>;
-                        }
-                      })()}
-                    </div>
-                  )}
                 </div>
               ))}
             </div>
           </motion.div>
         )}
       </AnimatePresence>
+    </div>
+  );
+};
+
+const ExclusionsCell = ({ items }: { items: any[] }) => {
+  const allExclusions = items.flatMap(item => {
+    try {
+      let customs = JSON.parse(item.customizations);
+      if (typeof customs === 'string') customs = JSON.parse(customs);
+      if (customs && Array.isArray(customs.Excluded)) {
+        return customs.Excluded.map((ex: string) => ({ itemName: item.menuItem.name, ingredient: ex }));
+      }
+    } catch (e) {}
+    return [];
+  });
+
+  if (allExclusions.length === 0) return <span className="text-[10px] text-gray-600 italic uppercase tracking-widest font-bold">None</span>;
+
+  return (
+    <div className="flex flex-col space-y-1.5">
+      {allExclusions.map((ex, idx) => (
+        <div key={idx} className="flex flex-col">
+          <span className="text-[8px] text-gray-500 uppercase tracking-tighter leading-none mb-0.5">{ex.itemName}</span>
+          <span className="text-red-400 font-bold uppercase tracking-widest text-[10px] leading-tight">
+            NO {ex.ingredient}
+          </span>
+        </div>
+      ))}
     </div>
   );
 };
@@ -110,7 +98,7 @@ const ExpandableNoteCell = ({ note }: { note?: string }) => {
   return (
     <div className="flex flex-col items-start min-w-[150px] max-w-[250px]">
       <span className="text-[9px] text-luxury-gold uppercase tracking-widest font-bold flex items-center mb-1">
-        <Star size={10} className="mr-1 inline" /> Note
+        <Star size={10} className="mr-1 inline" /> Instruction
       </span>
       <span className={`text-xs text-gray-300 italic ${!isExpanded && shouldTruncate ? 'line-clamp-2' : 'whitespace-normal'}`}>
         "{note}"
@@ -181,8 +169,9 @@ export const OrdersPage: React.FC = () => {
               <th className="p-4 font-bold">Order ID</th>
               <th className="p-4 font-bold">Time</th>
               <th className="p-4 font-bold">Location</th>
-              <th className="p-4 font-bold min-w-[250px]">Items</th>
-              <th className="p-4 font-bold">Notes</th>
+              <th className="p-4 font-bold min-w-[200px]">Items</th>
+              <th className="p-4 font-bold min-w-[200px]">Exclusions</th>
+              <th className="p-4 font-bold">Instruction</th>
               <th className="p-4 font-bold">Total</th>
               <th className="p-4 font-bold">Status</th>
               <th className="p-4 font-bold text-right">Action</th>
@@ -221,6 +210,9 @@ export const OrdersPage: React.FC = () => {
                   </td>
                   <td className="p-4 whitespace-normal align-top">
                     <OrderItemsCell items={order.items} />
+                  </td>
+                  <td className="p-4 whitespace-normal align-top">
+                    <ExclusionsCell items={order.items} />
                   </td>
                   <td className="p-4 whitespace-normal align-top">
                     <ExpandableNoteCell note={order.notes} />

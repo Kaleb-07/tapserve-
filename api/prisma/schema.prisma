@@ -72,3 +72,11 @@ model Admin {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+model Settings {
+  id           String   @id @default(uuid())
+  hotelName    String   @default("Nora Luxe")
+  currency     String   @default("USD")
+  supportEmail String?
+  updatedAt    DateTime @updatedAt
+}

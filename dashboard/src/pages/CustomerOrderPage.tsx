@@ -5,6 +5,7 @@ import {
   Loader2, CheckCircle, ArrowLeft, ArrowRight, UtensilsCrossed
 } from 'lucide-react';
 import axios from 'axios';
+import { useStore } from '../store/useStore';
 
 const API_URL = 'http://localhost:3001/api';
 
@@ -44,6 +45,7 @@ const TEXT_GRAY = '#9ca3af';
 const GOLD_GRADIENT = 'linear-gradient(135deg, #d4af37 0%, #f1d592 50%, #aa8d2e 100%)';
 
 export const CustomerOrderPage: React.FC = () => {
+  const { settings, fetchSettings } = useStore();
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [step, setStep] = useState(1);
@@ -85,6 +87,7 @@ export const CustomerOrderPage: React.FC = () => {
   );
 
   useEffect(() => {
+    fetchSettings();
     axios.get(`${API_URL}/categories`).then(r => {
       setCategories(r.data);
     }).catch(console.error).finally(() => setLoading(false));
@@ -221,8 +224,8 @@ export const CustomerOrderPage: React.FC = () => {
               Exclusive Access
             </p>
           </div>
-          <h1 className="text-5xl font-extrabold" style={{ fontFamily: "'Playfair Display', serif", letterSpacing: '-0.03em' }}>
-            Welcome
+          <h1 className="text-5xl font-extrabold uppercase tracking-widest leading-relaxed" style={{ fontFamily: "'Playfair Display', serif", letterSpacing: '-0.03em' }}>
+            {settings?.hotelName || 'WELCOME'}
           </h1>
           <div className="flex items-center justify-center space-x-6 mt-6">
             <div className="h-[1px] w-16 bg-gradient-to-r from-transparent to-[#d4af3766]" />

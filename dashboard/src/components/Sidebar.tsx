@@ -17,11 +17,11 @@ const menuItems = [
 ];
 
 export const Sidebar: React.FC<{ activeId: string; onSetTab: (id: string) => void }> = ({ activeId, onSetTab }) => {
-  const { logout } = useStore();
+  const { logout, settings } = useStore();
   return (
     <div className="w-64 h-screen bg-luxury-dark border-r border-luxury-border flex flex-col pt-8">
       <div className="px-8 mb-12">
-        <h1 className="text-2xl font-serif font-bold gold-text">NORA LUXE</h1>
+        <h1 className="text-2xl font-serif font-bold gold-text uppercase tracking-widest leading-relaxed line-clamp-2">{settings?.hotelName || 'NORA LUXE'}</h1>
         <p className="text-[10px] text-luxury-gold uppercase tracking-widest mt-1 opacity-70">Admin Dashboard</p>
       </div>
 
