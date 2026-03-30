@@ -10,7 +10,7 @@ export const MenuPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('All Categories');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  
+
   // Modals state
   const [isItemModalOpen, setIsItemModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
@@ -58,9 +58,9 @@ export const MenuPage: React.FC = () => {
   const handleSaveItem = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
-    
+
     let imageUrl = formData.get('image') as string;
-    
+
     if (selectedFile) {
       const uploadData = new FormData();
       uploadData.append('image', selectedFile);
@@ -135,13 +135,13 @@ export const MenuPage: React.FC = () => {
           <p className="text-gray-500 mt-1">Manage categories and premium selections</p>
         </div>
         <div className="flex space-x-3">
-          <button 
+          <button
             onClick={() => setIsCatModalOpen(true)}
             className="px-4 py-2 text-xs font-bold text-luxury-gold border border-luxury-gold/20 rounded-lg hover:bg-luxury-gold/5 transition-all uppercase tracking-widest"
           >
             Add Category
           </button>
-          <button 
+          <button
             onClick={() => openItemModal()}
             className="btn-gold flex items-center space-x-2"
           >
@@ -154,9 +154,9 @@ export const MenuPage: React.FC = () => {
       <div className="flex flex-col md:flex-row gap-4 items-center bg-luxury-dark p-4 rounded-xl border border-luxury-border">
         <div className="relative flex-1 w-full">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
-          <input 
-            type="text" 
-            placeholder="Search items..." 
+          <input
+            type="text"
+            placeholder="Search items..."
             className="w-full bg-luxury-black border border-luxury-border rounded-lg pl-10 pr-4 py-2 text-sm focus:border-luxury-gold outline-none transition-all"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -164,7 +164,7 @@ export const MenuPage: React.FC = () => {
         </div>
         <div className="flex items-center space-x-2 w-full md:w-auto">
           <Filter size={18} className="text-gray-500" />
-          <select 
+          <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
             className="bg-luxury-black border border-luxury-border rounded-lg px-4 py-2 text-sm focus:border-luxury-gold outline-none cursor-pointer flex-1 md:flex-none"
@@ -176,7 +176,7 @@ export const MenuPage: React.FC = () => {
       </div>
 
       {categories.filter(c => selectedCategory === 'All Categories' || c.name === selectedCategory).map((category, idx) => (
-        <motion.div 
+        <motion.div
           key={category.id}
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -186,13 +186,13 @@ export const MenuPage: React.FC = () => {
           <div className="flex items-center space-x-4">
             <h2 className="text-xl font-bold text-luxury-gold font-serif">{category.name}</h2>
             <div className="flex space-x-2">
-              <button 
+              <button
                 onClick={() => { setEditingCat(category); setIsCatModalOpen(true); }}
                 className="p-1.5 text-gray-500 hover:text-white transition-colors"
               >
                 <Edit2 size={14} />
               </button>
-              <button 
+              <button
                 onClick={() => handleDeleteCat(category.id)}
                 className="p-1.5 text-gray-500 hover:text-red-500 transition-colors"
               >
@@ -215,13 +215,13 @@ export const MenuPage: React.FC = () => {
                     </div>
                   )}
                   <div className="absolute top-4 right-4 flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button 
+                    <button
                       onClick={() => openItemModal(item)}
                       className="p-2 bg-luxury-black rounded-full text-white hover:text-luxury-gold shadow-lg"
                     >
                       <Edit2 size={16} />
                     </button>
-                    <button 
+                    <button
                       onClick={() => handleDeleteItem(item.id)}
                       className="p-2 bg-luxury-black rounded-full text-white hover:text-red-500 shadow-lg"
                     >
@@ -238,10 +238,10 @@ export const MenuPage: React.FC = () => {
                   <div className="mt-auto flex items-center justify-between pt-4 border-t border-luxury-border">
                     <span className="text-[10px] text-luxury-gold uppercase tracking-widest font-bold">In Stock</span>
                     <label className="relative inline-flex items-center cursor-pointer">
-                      <input 
-                        type="checkbox" 
-                        className="sr-only peer" 
-                        checked={item.inStock !== false} 
+                      <input
+                        type="checkbox"
+                        className="sr-only peer"
+                        checked={item.inStock !== false}
                         onChange={async (e) => {
                           await updateItem(item.id, { inStock: e.target.checked });
                         }}
@@ -314,20 +314,19 @@ export const MenuPage: React.FC = () => {
                 <label className="text-xs text-gray-500 uppercase tracking-widest font-bold mb-2 block">Item Image</label>
                 <div className="space-y-3">
                   <div className="relative">
-                    <input 
-                      type="file" 
-                      accept="image/*" 
+                    <input
+                      type="file"
+                      accept="image/*"
                       onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-                      className="hidden" 
+                      className="hidden"
                       id="imageUpload"
                     />
-                    <label 
-                      htmlFor="imageUpload" 
-                      className={`w-full flex items-center justify-center space-x-3 border border-dashed rounded-xl px-4 py-4 cursor-pointer transition-all ${
-                        selectedFile 
-                        ? 'bg-luxury-gold/10 border-luxury-gold text-white shadow-[0_0_15px_rgba(212,175,55,0.1)]' 
+                    <label
+                      htmlFor="imageUpload"
+                      className={`w-full flex items-center justify-center space-x-3 border border-dashed rounded-xl px-4 py-4 cursor-pointer transition-all ${selectedFile
+                        ? 'bg-luxury-gold/10 border-luxury-gold text-white shadow-[0_0_15px_rgba(212,175,55,0.1)]'
                         : 'bg-luxury-gray/10 border-luxury-border text-gray-500 hover:border-luxury-gold/50'
-                      }`}
+                        }`}
                     >
                       <Upload size={18} className={selectedFile ? 'text-luxury-gold' : ''} />
                       <div className="text-left">
@@ -336,7 +335,7 @@ export const MenuPage: React.FC = () => {
                       </div>
                     </label>
                   </div>
-                  
+
                   <div className="flex items-center space-x-3">
                     <div className="h-[1px] flex-1 bg-luxury-border/30"></div>
                     <span className="text-[8px] font-bold text-gray-700 uppercase tracking-[0.2em]">or use external url</span>
@@ -345,11 +344,11 @@ export const MenuPage: React.FC = () => {
 
                   <div className="relative group">
                     <ImageIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 group-focus-within:text-luxury-gold transition-colors" size={14} />
-                    <input 
-                      name="image" 
+                    <input
+                      name="image"
                       placeholder="https://images.unsplash.com/..."
-                      defaultValue={editingItem?.image} 
-                      className="w-full bg-luxury-gray/10 border border-luxury-border rounded-xl pl-10 pr-4 py-2.5 text-xs text-white outline-none focus:border-luxury-gold/50 transition-all placeholder:text-gray-700" 
+                      defaultValue={editingItem?.image}
+                      className="w-full bg-luxury-gray/10 border border-luxury-border rounded-xl pl-10 pr-4 py-2.5 text-xs text-white outline-none focus:border-luxury-gold/50 transition-all placeholder:text-gray-700"
                     />
                   </div>
                 </div>

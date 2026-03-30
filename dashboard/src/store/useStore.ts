@@ -59,6 +59,11 @@ interface AppState {
   addCategory: (catData: any) => Promise<void>;
   updateCategory: (id: string, catData: any) => Promise<void>;
   deleteCategory: (id: string) => Promise<void>;
+  // Settings Actions
+  settings: any | null;
+  fetchSettings: () => Promise<void>;
+  updateSettings: (settingsData: any) => Promise<void>;
+  setSettings: (settings: any) => void;
 }
 
 export const useStore = create<AppState>((set) => ({
@@ -66,6 +71,7 @@ export const useStore = create<AppState>((set) => ({
   categories: [],
   items: [],
   loading: false,
+  settings: null,
   token: localStorage.getItem('luxury_token'),
   user: JSON.parse(localStorage.getItem('luxury_user') || 'null'),
 
@@ -133,7 +139,6 @@ export const useStore = create<AppState>((set) => ({
     const { token, admin } = res.data;
     localStorage.setItem('luxury_token', token);
     localStorage.setItem('luxury_user', JSON.stringify(admin));
-    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     set({ token, user: admin });
   },
 
@@ -189,7 +194,40 @@ export const useStore = create<AppState>((set) => ({
     const { fetchCategories } = useStore.getState();
     await fetchCategories();
   },
+
+  fetchSettings: async () => {
+    try {
+      const res = await axios.get(`${API_URL}/settings`);
+      set({ settings: res.data });
+    } catch (err) {
+      console.error(err);
+    }
+  },
+
+  updateSettings: async (settingsData) => {
+    try {
+      const res = await axios.patch(`${API_URL}/settings`, settingsData);
+      set({ settings: res.data });
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  },
+
+  setSettings: (settings) => set({ settings }),
 }));
+
+// Axios request interceptor for tokens
+axios.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('luxury_token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
 // Axios interceptor for 401s
 axios.interceptors.response.use(
@@ -209,4 +247,8 @@ socket.on('new_order', (order) => {
 
 socket.on('order_updated', (order) => {
   useStore.getState().updateOrder(order);
+});
+
+socket.on('settings_updated', (settings) => {
+  useStore.getState().setSettings(settings);
 });
