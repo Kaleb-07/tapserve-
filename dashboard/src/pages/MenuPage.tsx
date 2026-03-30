@@ -2,12 +2,11 @@ import React, { useEffect, useState, useRef } from 'react';
 import type { KeyboardEvent } from 'react';
 import axios from 'axios';
 import { useStore } from '../store/useStore';
-import { Plus, Edit2, Trash2, Image as ImageIcon, Search, Filter, Upload, X } from 'lucide-react';
+import { Plus, Edit2, Trash2, Image as ImageIcon, Filter, Upload, X } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export const MenuPage: React.FC = () => {
-  const { categories, fetchCategories, addItem, updateItem, deleteItem, addCategory, updateCategory, deleteCategory } = useStore();
-  const [searchTerm, setSearchTerm] = useState('');
+  const { categories, fetchCategories, addItem, updateItem, deleteItem, addCategory, updateCategory, deleteCategory, searchQuery } = useStore();
   const [selectedCategory, setSelectedCategory] = useState<string>('All Categories');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
@@ -152,16 +151,7 @@ export const MenuPage: React.FC = () => {
       </div>
 
       <div className="flex flex-col md:flex-row gap-4 items-center bg-luxury-dark p-4 rounded-xl border border-luxury-border">
-        <div className="relative flex-1 w-full">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
-          <input
-            type="text"
-            placeholder="Search items..."
-            className="w-full bg-luxury-black border border-luxury-border rounded-lg pl-10 pr-4 py-2 text-sm focus:border-luxury-gold outline-none transition-all"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
+
         <div className="flex items-center space-x-2 w-full md:w-auto">
           <Filter size={18} className="text-gray-500" />
           <select
@@ -204,7 +194,7 @@ export const MenuPage: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {category.items.filter(item => item.name.toLowerCase().includes(searchTerm.toLowerCase())).map((item) => (
+            {category.items.filter(item => item.name.toLowerCase().includes(searchQuery.toLowerCase())).map((item) => (
               <div key={item.id} className="card-luxury p-0 overflow-hidden flex flex-col group">
                 <div className="h-48 relative overflow-hidden bg-luxury-gray">
                   {item.image ? (

@@ -1,8 +1,8 @@
-import { Bell, Search, User, Menu, Sun, Moon } from 'lucide-react';
+import { Search, User, Menu, Sun, Moon } from 'lucide-react';
 import { useStore } from '../store/useStore';
 
 export const Topbar: React.FC<{ title: string; onToggleSidebar: () => void }> = ({ title, onToggleSidebar }) => {
-  const { user, theme, toggleTheme } = useStore();
+  const { user, theme, toggleTheme, searchQuery, setSearchQuery } = useStore();
   return (
     <div className="h-20 bg-luxury-black border-b border-luxury-border flex items-center justify-between px-4 md:px-8 sticky top-0 z-10">
       <div className="flex items-center space-x-4">
@@ -17,18 +17,17 @@ export const Topbar: React.FC<{ title: string; onToggleSidebar: () => void }> = 
 
       <div className="flex items-center space-x-6">
         <div className="relative group">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-hover:text-luxury-gold transition-colors" size={18} />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-luxury-gold transition-colors" size={18} />
           <input 
             type="text" 
             placeholder="Search orders, menu..."
-            className="bg-luxury-gray/50 border border-luxury-border rounded-full py-2 pl-10 pr-4 text-sm w-64 focus:outline-none focus:border-luxury-gold transition-all"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="bg-luxury-gray/50 border border-luxury-border rounded-full py-2 pl-10 pr-4 text-sm w-64 focus:outline-none focus:border-luxury-gold transition-all text-luxury-text"
           />
         </div>
 
-        <button className="relative p-2 text-luxury-textDim hover:text-luxury-gold transition-colors">
-          <Bell size={20} />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-luxury-black"></span>
-        </button>
+
 
         <button 
           onClick={toggleTheme}

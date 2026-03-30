@@ -68,6 +68,9 @@ interface AppState {
   theme: 'light' | 'dark';
   toggleTheme: () => void;
   initTheme: () => void;
+  // Search state
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
 }
 
 export const useStore = create<AppState>((set) => ({
@@ -244,6 +247,9 @@ export const useStore = create<AppState>((set) => ({
     }
     set({ theme });
   },
+
+  searchQuery: '',
+  setSearchQuery: (query) => set({ searchQuery: query }),
 }));
 
 // Axios request interceptor for tokens

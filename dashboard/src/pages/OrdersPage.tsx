@@ -116,7 +116,7 @@ const ExpandableNoteCell = ({ note }: { note?: string }) => {
 };
 
 export const OrdersPage: React.FC = () => {
-  const { orders, fetchOrders, updateOrderStatus, loading } = useStore();
+  const { orders, fetchOrders, updateOrderStatus, loading, searchQuery } = useStore();
   const [isManualOrderModalOpen, setIsManualOrderModalOpen] = React.useState(false);
 
   useEffect(() => {
@@ -179,7 +179,16 @@ export const OrdersPage: React.FC = () => {
           </thead>
           <tbody>
             <AnimatePresence>
-              {orders.map((order) => (
+              {orders
+                .filter(order => {
+                  const query = searchQuery.toLowerCase();
+                  if (!query) return true;
+                  const idMatch = order.id.toLowerCase().includes(query);
+                  const sourceMatch = (order.sourceId || '').toLowerCase().includes(query);
+                  const itemMatch = order.items.some(i => i.menuItem.name.toLowerCase().includes(query));
+                  return idMatch || sourceMatch || itemMatch;
+                })
+                .map((order) => (
                 <motion.tr
                   key={order.id}
                   layout
