@@ -50,14 +50,15 @@ app.use('/uploads', express.static(uploadDir));
 // Setup initial data if it doesn't exist
 const setupInitialData = async () => {
   try {
-    const adminCount = await prisma.admin.count();
+    const adminCount = await prisma.user.count({ where: { role: 'ADMIN' } });
     if (adminCount === 0) {
       const hashedPassword = await bcrypt.hash('luxury123', 10);
-      await prisma.admin.create({
+      await prisma.user.create({
         data: {
           username: 'admin',
           password: hashedPassword,
-          name: 'James Royale'
+          name: 'James Royale',
+          role: 'ADMIN'
         }
       });
       console.log('✅ Default admin created: admin / luxury123');
@@ -86,11 +87,18 @@ const authMiddleware = (req, res, next) => {
   if (!token) return res.status(401).json({ error: 'Unauthorized' });
   try {
     const decoded = jwt.verify(token, _JWT_SECRET);
-    req.adminId = decoded.id;
+    req.user = decoded; // { id, username, role }
     next();
   } catch (err) {
     res.status(401).json({ error: 'Invalid token' });
   }
+};
+
+const adminOnly = (req, res, next) => {
+  if (req.user?.role !== 'ADMIN') {
+    return res.status(403).json({ error: 'Forbidden: Admins only' });
+  }
+  next();
 };
 
 // Routes
@@ -98,14 +106,74 @@ const authMiddleware = (req, res, next) => {
 app.post('/api/auth/login', async (req, res) => {
   const { username, password } = req.body;
   try {
-    const admin = await prisma.admin.findUnique({ where: { username } });
-    if (!admin) return res.status(401).json({ error: 'Invalid credentials' });
+    const user = await prisma.user.findUnique({ where: { username } });
+    if (!user) return res.status(401).json({ error: 'Invalid credentials' });
 
-    const isValid = await bcrypt.compare(password, admin.password);
+    const isValid = await bcrypt.compare(password, user.password);
     if (!isValid) return res.status(401).json({ error: 'Invalid credentials' });
 
-    const token = jwt.sign({ id: admin.id, username: admin.username }, _JWT_SECRET, { expiresIn: '24h' });
-    res.json({ token, admin: { id: admin.id, username: admin.username, name: admin.name } });
+    const token = jwt.sign({ id: user.id, username: user.username, role: user.role }, _JWT_SECRET, { expiresIn: '24h' });
+    res.json({ token, user: { id: user.id, username: user.username, name: user.name, role: user.role } });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 0.5. Staff/Users
+app.get('/api/users', authMiddleware, adminOnly, async (req, res) => {
+  const users = await prisma.user.findMany({ select: { id: true, username: true, name: true, role: true, createdAt: true } });
+  res.json(users);
+});
+
+app.post('/api/users', authMiddleware, adminOnly, async (req, res) => {
+  const { username, password, name, role } = req.body;
+  try {
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = await prisma.user.create({
+      data: { username, password: hashedPassword, name, role: role || 'WAITER' },
+      select: { id: true, username: true, name: true, role: true }
+    });
+    res.json(user);
+  } catch (err) {
+    if (err.code === 'P2002') return res.status(400).json({ error: 'Username already exists' });
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.patch('/api/users/:id', authMiddleware, async (req, res) => {
+  // Allow if ADMIN or if the user is updating themselves
+  if (req.user?.role !== 'ADMIN' && req.user?.id !== req.params.id) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
+
+  const { name, role, password } = req.body;
+  try {
+    const updateData = {};
+    if (name !== undefined) updateData.name = name;
+    
+    // Only ADMIN can change roles
+    if (role !== undefined && req.user?.role === 'ADMIN') {
+      updateData.role = role;
+    }
+
+    if (password) {
+      updateData.password = await bcrypt.hash(password, 10);
+    }
+    const user = await prisma.user.update({
+      where: { id: req.params.id },
+      data: updateData,
+      select: { id: true, username: true, name: true, role: true }
+    });
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/users/:id', authMiddleware, adminOnly, async (req, res) => {
+  try {
+    await prisma.user.delete({ where: { id: req.params.id } });
+    res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -248,10 +316,15 @@ app.post('/api/orders', async (req, res) => {
 
 app.patch('/api/orders/:id', authMiddleware, async (req, res) => {
   const { id } = req.params;
-  const { status } = req.body;
+  const { status, paymentStatus } = req.body;
+  
+  const updateData = {};
+  if (status !== undefined) updateData.status = status;
+  if (paymentStatus !== undefined) updateData.paymentStatus = paymentStatus;
+
   const order = await prisma.order.update({
     where: { id },
-    data: { status },
+    data: updateData,
     include: { items: { include: { menuItem: true } } },
   });
 

@@ -32,43 +32,45 @@ model MenuItem {
 }
 
 model Order {
-  id          String      @id @default(uuid())
-  sourceType  String      // Table, Room, Event, Delivery
-  sourceId    String?     // e.g., "5", "101", "Gala-Event"
-  totalPrice  Float
-  status      String      @default("PENDING") // PENDING, PREPARING, READY, DELIVERED
-  notes       String?     @db.Text // Special instructions for the entire order
-  items       OrderItem[]
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  id            String      @id @default(uuid())
+  sourceType    String      // Table, Room, Event, Delivery
+  sourceId      String?     // e.g., "5", "101", "Gala-Event"
+  totalPrice    Float
+  status        String      @default("PENDING") // PENDING, PREPARING, READY, DELIVERED
+  paymentStatus String      @default("UNPAID")  // UNPAID, PAID
+  notes         String?     @db.Text
+  items         OrderItem[]
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
 }
 
 model OrderItem {
   id             String   @id @default(uuid())
   orderId        String
-  order          Order    @relation(fields: [orderId], references: [id])
+  order          Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
   menuItemId     String
   menuItem       MenuItem @relation(fields: [menuItemId], references: [id])
   quantity       Int      @default(1)
-  priceAtOrder   Float    // Historical price
-  customizations String?  @db.Text // JSON string of selected options
+  priceAtOrder   Float
+  customizations String?  @db.Text
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 }
 
 model Source {
   id          String   @id @default(uuid())
-  type        String   // TABLE, ROOM, EVENT, DELIVERY
-  identifier  String   // e.g. "Table 5"
+  type        String
+  identifier  String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
 
-model Admin {
+model User {
   id        String   @id @default(uuid())
   username  String   @unique
   password  String
   name      String?
+  role      String   @default("ADMIN") // ADMIN, WAITER, CHEF
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
