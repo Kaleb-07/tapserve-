@@ -6,6 +6,9 @@ import { OrdersPage } from './pages/OrdersPage';
 import { MenuPage } from './pages/MenuPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { LoginPage } from './pages/LoginPage';
+import { StaffManagementPage } from './pages/StaffManagementPage';
+import { PaymentPage } from './pages/PaymentPage';
+import { ProfilePage } from './pages/ProfilePage';
 import { useStore } from './store/useStore';
 
 const App: React.FC = () => {
@@ -32,8 +35,14 @@ const App: React.FC = () => {
         return <OrdersPage />;
       case 'menu':
         return <MenuPage />;
+      case 'payments':
+        return <PaymentPage />;
+      case 'staff':
+        return <StaffManagementPage />;
       case 'settings':
         return <SettingsPage />;
+      case 'profile':
+        return <ProfilePage />;
       default:
         return <DashboardPage />;
     }
@@ -42,20 +51,20 @@ const App: React.FC = () => {
   return (
     <div className="flex min-h-screen bg-luxury-black font-sans text-gray-200 overflow-x-hidden">
       {/* Sidebar - fixed and responsive handling */}
-      <Sidebar 
-        activeId={activeTab} 
-        onSetTab={(id) => { setActiveTab(id); setIsSidebarOpen(false); }} 
+      <Sidebar
+        activeId={activeTab}
+        onSetTab={(id) => { setActiveTab(id); setIsSidebarOpen(false); }}
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
       />
-      
+
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 md:pl-64 transition-all duration-300">
-        <Topbar 
-          title={activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} 
+        <Topbar
+          title={activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
           onToggleSidebar={toggleSidebar}
         />
-        
+
         <main className="flex-1">
           {renderContent()}
         </main>

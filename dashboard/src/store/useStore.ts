@@ -28,9 +28,18 @@ interface Order {
   sourceId: string;
   totalPrice: number;
   status: 'PENDING' | 'PREPARING' | 'READY' | 'DELIVERED';
+  paymentStatus: 'UNPAID' | 'PAID';
   notes?: string;
   items: any[];
   createdAt: string;
+}
+
+interface User {
+  id: string;
+  username: string;
+  name: string;
+  role: 'ADMIN' | 'WAITER' | 'CHEF';
+  createdAt?: string;
 }
 
 interface AppState {
@@ -39,11 +48,13 @@ interface AppState {
   items: MenuItem[];
   loading: boolean;
   token: string | null;
-  user: any | null;
+  user: User | null;
+  users: User[];
   fetchOrders: () => Promise<void>;
   fetchCategories: () => Promise<void>;
   fetchItems: () => Promise<void>;
-  updateOrderStatus: (id: string, status: string) => Promise<void>;
+  fetchUsers: () => Promise<void>;
+  updateOrderStatus: (id: string, status?: string, paymentStatus?: string) => Promise<void>;
   createOrder: (orderData: any) => Promise<any>;
   addOrder: (order: Order) => void;
   updateOrder: (order: Order) => void;
@@ -51,6 +62,10 @@ interface AppState {
   login: (username: string, password: string) => Promise<void>;
   logout: () => void;
   checkAuth: () => void;
+  // User Actions (Admin)
+  addUser: (userData: any) => Promise<void>;
+  updateUser: (id: string, userData: any) => Promise<void>;
+  deleteUser: (id: string) => Promise<void>;
   // Menu Item Actions
   addItem: (itemData: any) => Promise<void>;
   updateItem: (id: string, itemData: any) => Promise<void>;
@@ -77,10 +92,18 @@ export const useStore = create<AppState>((set) => ({
   orders: [],
   categories: [],
   items: [],
+  users: [],
   loading: false,
   settings: null,
   token: localStorage.getItem('luxury_token'),
-  user: JSON.parse(localStorage.getItem('luxury_user') || 'null'),
+  user: (() => {
+    try {
+      const item = localStorage.getItem('luxury_user');
+      return item && item !== 'undefined' ? JSON.parse(item) : null;
+    } catch {
+      return null;
+    }
+  })(),
 
   fetchOrders: async () => {
     set({ loading: true });
@@ -111,9 +134,21 @@ export const useStore = create<AppState>((set) => ({
     }
   },
 
-  updateOrderStatus: async (id, status) => {
+  fetchUsers: async () => {
     try {
-      await axios.patch(`${API_URL}/orders/${id}`, { status });
+      const res = await axios.get(`${API_URL}/users`);
+      set({ users: res.data });
+    } catch (err) {
+      console.error(err);
+    }
+  },
+
+  updateOrderStatus: async (id, status, paymentStatus) => {
+    try {
+      const updateData: any = {};
+      if (status !== undefined) updateData.status = status;
+      if (paymentStatus !== undefined) updateData.paymentStatus = paymentStatus;
+      await axios.patch(`${API_URL}/orders/${id}`, updateData);
     } catch (err) {
       console.error(err);
     }
@@ -143,10 +178,10 @@ export const useStore = create<AppState>((set) => ({
 
   login: async (username, password) => {
     const res = await axios.post(`${API_URL}/auth/login`, { username, password });
-    const { token, admin } = res.data;
+    const { token, user } = res.data;
     localStorage.setItem('luxury_token', token);
-    localStorage.setItem('luxury_user', JSON.stringify(admin));
-    set({ token, user: admin });
+    localStorage.setItem('luxury_user', JSON.stringify(user));
+    set({ token, user });
   },
 
   logout: () => {
@@ -161,6 +196,24 @@ export const useStore = create<AppState>((set) => ({
     if (token) {
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     }
+  },
+
+  addUser: async (userData) => {
+    await axios.post(`${API_URL}/users`, userData);
+    const { fetchUsers } = useStore.getState();
+    await fetchUsers();
+  },
+
+  updateUser: async (id, userData) => {
+    await axios.patch(`${API_URL}/users/${id}`, userData);
+    const { fetchUsers } = useStore.getState();
+    await fetchUsers();
+  },
+
+  deleteUser: async (id) => {
+    await axios.delete(`${API_URL}/users/${id}`);
+    const { fetchUsers } = useStore.getState();
+    await fetchUsers();
   },
 
   addItem: async (itemData) => {

@@ -5,17 +5,31 @@ import {
   Utensils, 
   Settings, 
   LogOut,
+  Users,
+  CreditCard,
+  User as UserIcon,
   Menu as MenuIcon
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '../store/useStore';
 
-const menuItems = [
-  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { id: 'orders', label: 'Orders', icon: ShoppingCart },
-  { id: 'menu', label: 'Menu Items', icon: Utensils },
-  { id: 'settings', label: 'Settings', icon: Settings },
-];
+const getMenuItems = (role: string) => {
+  const items = [
+    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'orders', label: 'Orders', icon: ShoppingCart },
+    { id: 'payments', label: 'Payments', icon: CreditCard },
+    { id: 'menu', label: 'Menu Items', icon: Utensils },
+  ];
+  
+  if (role === 'ADMIN') {
+    items.push({ id: 'staff', label: 'Staff Management', icon: Users });
+    items.push({ id: 'settings', label: 'Global Settings', icon: Settings });
+  } else {
+    items.push({ id: 'profile', label: 'My Profile', icon: UserIcon });
+  }
+  
+  return items;
+};
 
 export const Sidebar: React.FC<{ 
   activeId: string; 
@@ -23,7 +37,8 @@ export const Sidebar: React.FC<{
   isOpen: boolean;
   onClose: () => void;
 }> = ({ activeId, onSetTab, isOpen, onClose }) => {
-  const { logout, settings } = useStore();
+  const { logout, settings, user } = useStore();
+  const menuItems = getMenuItems(user?.role || '');
   
   return (
     <>
@@ -45,7 +60,9 @@ export const Sidebar: React.FC<{
         <div className="px-8 mb-12 flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-serif font-bold gold-text uppercase tracking-widest leading-relaxed line-clamp-2">{settings?.hotelName || 'NORA LUXE'}</h1>
-            <p className="text-[10px] text-luxury-gold uppercase tracking-widest mt-1 opacity-70">Admin Dashboard</p>
+            <p className="text-[10px] text-luxury-gold uppercase tracking-widest mt-1 opacity-70">
+              {user?.role === 'ADMIN' ? 'Admin Dashboard' : 'Staff Dashboard'}
+            </p>
           </div>
         </div>
 
