@@ -13,7 +13,7 @@ interface MenuItem {
   name: string;
   description?: string;
   price: number;
-  images?: string;
+  image?: string;
   ingredients?: string;
   categoryId: string;
   inStock?: boolean;
@@ -316,12 +316,12 @@ export const CustomerOrderPage: React.FC = () => {
                     <div className="w-24 h-24 rounded-[1.5rem] overflow-hidden flex-shrink-0 bg-luxury-gray/50">
                       {(() => {
                         let displayImage = '';
-                        if (item.images) {
+                        if (item.image) {
                           try {
-                            const parsed = JSON.parse(item.images);
-                            displayImage = Array.isArray(parsed) ? parsed[0] : item.images;
+                            const parsed = JSON.parse(item.image);
+                            displayImage = Array.isArray(parsed) ? parsed[0] : item.image;
                           } catch {
-                            displayImage = item.images;
+                            displayImage = item.image;
                           }
                         }
                         return displayImage ? (
@@ -399,12 +399,12 @@ export const CustomerOrderPage: React.FC = () => {
                   <div className="w-16 h-16 rounded-[1rem] overflow-hidden flex-shrink-0 border border-luxury-border bg-luxury-gray">
                      {(() => {
                         let displayImage = '';
-                        if (item.images) {
+                        if (item.image) {
                           try {
-                            const parsed = JSON.parse(item.images);
-                            displayImage = Array.isArray(parsed) ? parsed[0] : item.images;
+                            const parsed = JSON.parse(item.image);
+                            displayImage = Array.isArray(parsed) ? parsed[0] : item.image;
                           } catch {
-                            displayImage = item.images;
+                            displayImage = item.image;
                           }
                         }
                         return displayImage ? <img src={displayImage} alt={item.name} className="w-full h-full object-cover" /> : null;
