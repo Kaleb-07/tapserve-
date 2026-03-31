@@ -67,6 +67,9 @@ export const CustomerOrderPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [orderSuccess, setOrderSuccess] = useState<string | null>(null);
   
+  // Auto-location state
+  const [isAutoLocation, setIsAutoLocation] = useState(false);
+  
   // Payment States
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [selectedMethod, setSelectedMethod] = useState<'CARD' | 'ROOM' | 'CASH'>('CASH');
@@ -85,6 +88,16 @@ export const CustomerOrderPage: React.FC = () => {
       })
       .catch(console.error)
       .finally(() => setLoading(false));
+
+    // Parse URL params for auto-location
+    const params = new URLSearchParams(window.location.search);
+    const type = params.get('type');
+    const id = params.get('id');
+    if (type && id) {
+      setSourceType(type.charAt(0).toUpperCase() + type.slice(1).toLowerCase());
+      setSourceId(id);
+      setIsAutoLocation(true);
+    }
   }, [fetchSettings, initTheme, activeMealType]);
 
   const cartTotal = cart.reduce((s, i) => s + i.price * i.quantity, 0);
@@ -438,45 +451,73 @@ export const CustomerOrderPage: React.FC = () => {
         {/* Summary Footer */}
         <div className="p-6 bg-luxury-black border-t border-luxury-border relative z-10 shadow-[0_-10px_30px_rgba(0,0,0,0.1)]">
           <div className="mb-6 space-y-3">
-             <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-luxury-textDim">Service Location</label>
-             <div className="flex space-x-2">
-               {['Table', 'Room', 'VIP', 'Pick-Up'].map(type => (
-                 <button
-                   key={type}
-                   onClick={() => setSourceType(type)}
-                   className={`flex-1 py-3 text-[10px] font-bold uppercase tracking-widest rounded-xl transition-all border ${
-                     sourceType === type 
-                     ? 'bg-luxury-gold text-black border-luxury-gold shadow-lg shadow-luxury-gold/20' 
-                     : 'bg-luxury-dark text-luxury-textDim border-luxury-border'
-                   }`}
+             <div className="flex justify-between items-center mb-1">
+               <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-luxury-textDim">Service Location</label>
+               {isAutoLocation && (
+                 <button 
+                  onClick={() => setIsAutoLocation(false)}
+                  className="text-[9px] text-red-500 font-bold uppercase tracking-widest hover:underline"
                  >
-                   {type}
+                   Reset Location
                  </button>
-               ))}
-             </div>
-             <div>
-               {sourceType === 'Pick-Up' ? (
-                 <div className="space-y-3">
-                   <p className="text-[9px] text-luxury-gold uppercase tracking-[0.2em] font-bold">Registration Phone</p>
-                   <input
-                    type="tel"
-                    placeholder="e.g. +1 234 567 890"
-                    value={customerPhone}
-                    onChange={(e) => { setCustomerPhone(e.target.value); setError(null); }}
-                    className="w-full bg-luxury-dark border border-luxury-gold/50 rounded-xl px-4 py-4 text-sm focus:outline-none focus:border-luxury-gold transition-all text-luxury-text placeholder:text-gray-700 shadow-inner"
-                   />
-                   <p className="text-[9px] text-gray-500 italic">We'll text you when your order is ready for pickup.</p>
-                 </div>
-               ) : (
-                 <input
-                   type="text"
-                   placeholder={`Enter ${sourceType} Number/Name`}
-                   value={sourceId}
-                   onChange={(e) => { setSourceId(e.target.value); setError(null); }}
-                   className="w-full bg-luxury-dark border border-luxury-border rounded-xl px-4 py-4 text-sm focus:outline-none focus:border-luxury-gold transition-all text-luxury-text"
-                 />
                )}
              </div>
+
+             {isAutoLocation ? (
+               <div className="flex items-center space-x-3 p-4 rounded-xl bg-luxury-gold/10 border border-luxury-gold/30">
+                 <div className="w-8 h-8 rounded-lg bg-luxury-gold flex items-center justify-center text-black">
+                   <div className="w-2 h-2 rounded-full bg-black animate-pulse" />
+                 </div>
+                 <div className="flex-1">
+                   <p className="text-[10px] text-luxury-gold font-bold uppercase tracking-widest">Verified Spot</p>
+                   <p className="text-sm font-bold text-luxury-text">{sourceType} {sourceId}</p>
+                 </div>
+                 <div className="px-2 py-1 rounded bg-luxury-gold/20 text-[9px] text-luxury-gold font-extrabold uppercase tracking-tighter shadow-sm">
+                   QR ACTIVE
+                 </div>
+               </div>
+             ) : (
+               <>
+                 <div className="flex space-x-2">
+                   {['Table', 'Room', 'VIP', 'Pick-Up'].map(type => (
+                     <button
+                       key={type}
+                       onClick={() => setSourceType(type)}
+                       className={`flex-1 py-3 text-[10px] font-bold uppercase tracking-widest rounded-xl transition-all border ${
+                         sourceType === type 
+                         ? 'bg-luxury-gold text-black border-luxury-gold shadow-lg shadow-luxury-gold/20' 
+                         : 'bg-luxury-dark text-luxury-textDim border-luxury-border'
+                       }`}
+                     >
+                       {type}
+                     </button>
+                   ))}
+                 </div>
+                 <div>
+                   {sourceType === 'Pick-Up' ? (
+                     <div className="space-y-3">
+                       <p className="text-[9px] text-luxury-gold uppercase tracking-[0.2em] font-bold">Registration Phone</p>
+                       <input
+                        type="tel"
+                        placeholder="e.g. +1 234 567 890"
+                        value={customerPhone}
+                        onChange={(e) => { setCustomerPhone(e.target.value); setError(null); }}
+                        className="w-full bg-luxury-dark border border-luxury-gold/50 rounded-xl px-4 py-4 text-sm focus:outline-none focus:border-luxury-gold transition-all text-luxury-text placeholder:text-gray-700 shadow-inner"
+                       />
+                       <p className="text-[9px] text-gray-500 italic">We'll text you when your order is ready for pickup.</p>
+                     </div>
+                   ) : (
+                     <input
+                       type="text"
+                       placeholder={`Enter ${sourceType} Number/Name`}
+                       value={sourceId}
+                       onChange={(e) => { setSourceId(e.target.value); setError(null); }}
+                       className="w-full bg-luxury-dark border border-luxury-border rounded-xl px-4 py-4 text-sm focus:outline-none focus:border-luxury-gold transition-all text-luxury-text"
+                     />
+                   )}
+                 </div>
+               </>
+             )}
           </div>
 
           <div className="space-y-3 mb-6">
@@ -739,9 +780,11 @@ export const CustomerOrderPage: React.FC = () => {
                </div>
                 <h2 className="text-3xl font-extrabold mb-2 font-serif text-luxury-text">Order Placed</h2>
                 <p className="text-xs mb-4 uppercase tracking-widest text-luxury-textDim">Your selection is being prepared.</p>
-                <div className="bg-luxury-gold/5 border border-luxury-gold/30 rounded-xl px-4 py-2 mb-6 w-full">
+                <div className="bg-luxury-gold/5 border border-luxury-gold/30 rounded-xl px-4 py-2 mb-6 w-full text-center">
                   <p className="text-[10px] font-bold text-luxury-gold uppercase tracking-widest">
-                    We will call you when your order is ready!
+                    {sourceType === 'Pick-Up' 
+                      ? "We will call you when your order is ready!" 
+                      : "Our team will bring your order to you shortly!"}
                   </p>
                 </div>
                

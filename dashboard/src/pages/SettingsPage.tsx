@@ -2,8 +2,11 @@ import React, { useState } from 'react';
 import {
   Globe, 
   Save,
-  Hotel
+  Hotel,
+  QrCode,
+  Download
 } from 'lucide-react';
+import { QRCodeCanvas } from 'qrcode.react';
 import { useStore } from '../store/useStore';
 
 export const SettingsPage: React.FC = () => {
@@ -12,6 +15,10 @@ export const SettingsPage: React.FC = () => {
   const [currency, setCurrency] = useState('USD');
   const [supportEmail, setSupportEmail] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  
+  // QR Generator State
+  const [qrType, setQrType] = useState('Table');
+  const [qrId, setQrId] = useState('1');
 
   React.useEffect(() => {
     fetchSettings();
@@ -38,6 +45,22 @@ export const SettingsPage: React.FC = () => {
       setIsSaving(false);
     }
   };
+
+  const downloadQR = () => {
+    const canvas = document.getElementById('qr-canvas') as HTMLCanvasElement;
+    if (!canvas) return;
+    const pngUrl = canvas
+      .toDataURL("image/png")
+      .replace("image/png", "image/octet-stream");
+    let downloadLink = document.createElement("a");
+    downloadLink.href = pngUrl;
+    downloadLink.download = `qr-${qrType}-${qrId}.png`;
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+  };
+
+  const qrValue = `${window.location.origin}/customer.html?type=${qrType}&id=${qrId}`;
 
   return (
     <div className="p-8 max-w-4xl mx-auto space-y-8">
@@ -83,6 +106,68 @@ export const SettingsPage: React.FC = () => {
                   placeholder="concierge@nora-resort.com" 
                   className="w-full bg-luxury-black border border-luxury-border rounded-lg px-4 py-3 text-sm focus:border-luxury-gold outline-none text-luxury-text" 
                 />
+              </div>
+            </div>
+          </div>
+
+          {/* QR Code Management */}
+          <div className="card-luxury p-8 space-y-6">
+            <div className="flex items-center space-x-3 text-luxury-gold border-b border-luxury-border pb-4">
+              <QrCode size={20} />
+              <h3 className="font-bold text-lg">QR Code Management</h3>
+            </div>
+            
+            <p className="text-sm text-luxury-textDim">
+              Generate location-specific QR codes for your tables, rooms, or VIP areas.
+            </p>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-[10px] text-luxury-textDim uppercase tracking-widest font-bold mb-2 block">Location Type</label>
+                <select 
+                  value={qrType}
+                  onChange={(e) => setQrType(e.target.value)}
+                  className="w-full bg-luxury-black border border-luxury-border rounded-lg px-4 py-3 text-sm focus:border-luxury-gold outline-none text-luxury-text"
+                >
+                  <option value="Table">Table</option>
+                  <option value="Room">Room</option>
+                  <option value="VIP">VIP</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-[10px] text-luxury-textDim uppercase tracking-widest font-bold mb-2 block">Identifier (ID)</label>
+                <input 
+                  type="text" 
+                  value={qrId}
+                  onChange={(e) => setQrId(e.target.value)}
+                  placeholder="e.g. 101, Suite A"
+                  className="w-full bg-luxury-black border border-luxury-border rounded-lg px-4 py-3 text-sm focus:border-luxury-gold outline-none text-luxury-text" 
+                />
+              </div>
+            </div>
+
+            <div className="flex flex-col items-center justify-center p-8 bg-luxury-black/50 rounded-2xl border border-luxury-border/50 space-y-4">
+              <div className="bg-white p-4 rounded-xl shadow-2xl">
+                <QRCodeCanvas 
+                  id="qr-canvas"
+                  value={qrValue} 
+                  size={200}
+                  level={"H"}
+                  includeMargin={false}
+                />
+              </div>
+              <div className="text-center">
+                <p className="text-[10px] text-luxury-gold font-bold uppercase tracking-widest mb-1">{qrType} {qrId}</p>
+                <p className="text-[9px] text-luxury-textDim break-all max-w-[200px] leading-relaxed mb-4">
+                  {qrValue}
+                </p>
+                <button 
+                  onClick={downloadQR}
+                  className="flex items-center space-x-2 px-6 py-2 rounded-lg bg-luxury-gold/10 border border-luxury-gold/20 text-luxury-gold text-xs font-bold uppercase tracking-widest hover:bg-luxury-gold/20 transition-all"
+                >
+                  <Download size={14} />
+                  <span>Download Image</span>
+                </button>
               </div>
             </div>
           </div>
