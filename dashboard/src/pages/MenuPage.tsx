@@ -9,7 +9,8 @@ export const MenuPage: React.FC = () => {
   const { categories, fetchCategories, addItem, updateItem, deleteItem, addCategory, updateCategory, deleteCategory, searchQuery, showConfirm, user } = useStore();
   const [selectedCategory, setSelectedCategory] = useState<string>('All Categories');
   const [activeMealType, setActiveMealType] = useState<string>('LUNCH');
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
 
   // Modals / Loading state
   const [isItemModalOpen, setIsItemModalOpen] = useState(false);
@@ -28,7 +29,8 @@ export const MenuPage: React.FC = () => {
     setEditingItem(item || null);
     setIngredientTags(item?.ingredients ? item.ingredients.split(',').map((s: string) => s.trim()).filter(Boolean) : []);
     setIngredientInput('');
-    setSelectedFile(null);
+    setSelectedFiles([]);
+    setImagePreviews([]);
     setIsItemModalOpen(true);
   };
 
@@ -61,14 +63,27 @@ export const MenuPage: React.FC = () => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
 
-    let imageUrl = formData.get('image') as string;
+    let currentImages: string[] = [];
+    if (editingItem?.images) {
+      try {
+        currentImages = JSON.parse(editingItem.images);
+        if (!Array.isArray(currentImages)) currentImages = [editingItem.images];
+      } catch {
+        currentImages = [editingItem.images];
+      }
+    }
 
-    if (selectedFile) {
+    const manuallyEnteredUrl = formData.get('image-url') as string;
+    if (manuallyEnteredUrl) {
+      currentImages.push(manuallyEnteredUrl);
+    }
+
+    if (selectedFiles.length > 0) {
       const uploadData = new FormData();
-      uploadData.append('image', selectedFile);
+      selectedFiles.forEach(file => uploadData.append('images', file));
       try {
         const res = await axios.post('http://localhost:3001/api/upload', uploadData);
-        imageUrl = res.data.url;
+        currentImages = [...currentImages, ...res.data.urls];
       } catch (err) {
         console.error('Upload failed:', err);
       }
@@ -83,7 +98,7 @@ export const MenuPage: React.FC = () => {
       name: formData.get('name'),
       description: formData.get('description'),
       price: parseFloat(formData.get('price') as string),
-      image: imageUrl,
+      image: JSON.stringify(currentImages),
       ingredients: allTags.join(', '),
       categoryId: formData.get('categoryId'),
     };
@@ -97,7 +112,8 @@ export const MenuPage: React.FC = () => {
       }
       setIsItemModalOpen(false);
       setEditingItem(null);
-      setSelectedFile(null);
+      setSelectedFiles([]);
+      setImagePreviews([]);
       setIngredientTags([]);
       setIngredientInput('');
     } catch (err) {
@@ -280,13 +296,24 @@ export const MenuPage: React.FC = () => {
             {category.items.filter(item => item.name.toLowerCase().includes(searchQuery.toLowerCase())).map((item) => (
               <div key={item.id} className="card-luxury p-0 overflow-hidden flex flex-col group">
                 <div className="h-48 relative overflow-hidden bg-luxury-gray">
-                  {item.image ? (
-                    <img src={item.image} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-600">
-                      <ImageIcon size={48} />
-                    </div>
-                  )}
+                  {(() => {
+                    let displayImage = '';
+                    if (item.images) {
+                      try {
+                        const parsed = JSON.parse(item.images);
+                        displayImage = Array.isArray(parsed) ? parsed[0] : item.images;
+                      } catch {
+                        displayImage = item.images;
+                      }
+                    }
+                    return displayImage ? (
+                      <img src={displayImage} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-gray-600">
+                        <ImageIcon size={48} />
+                      </div>
+                    );
+                  })()}
                   {user?.role === 'ADMIN' && (
                     <div className="absolute top-4 right-4 flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button
@@ -388,45 +415,72 @@ export const MenuPage: React.FC = () => {
                 </div>
               </div>
               <div>
-                <label className="text-xs text-gray-500 uppercase tracking-widest font-bold mb-2 block">Item Image</label>
-                <div className="space-y-3">
+                <label className="text-xs text-gray-500 uppercase tracking-widest font-bold mb-2 block">Item Images</label>
+                <div className="space-y-4">
+                  {/* Preview Area */}
+                  {((editingItem?.images ? (() => { try { return JSON.parse(editingItem.images); } catch { return [editingItem.images]; } })() : []) as string[]).concat(imagePreviews).length > 0 && (
+                    <div className="grid grid-cols-4 gap-2 mb-2">
+                       {((editingItem?.images ? (() => { try { return JSON.parse(editingItem.images); } catch { return [editingItem.images]; } })() : []) as string[]).map((img : string, i: number) => (
+                         <div key={`old-${i}`} className="relative aspect-square rounded-lg overflow-hidden border border-luxury-border group/img">
+                           <img src={img} className="w-full h-full object-cover" />
+                           <button 
+                            type="button"
+                            onClick={() => {
+                              const imgs = JSON.parse(editingItem.images);
+                              imgs.splice(i, 1);
+                              setEditingItem({...editingItem, images: JSON.stringify(imgs)});
+                            }}
+                            className="absolute top-1 right-1 p-1 bg-black/60 rounded-full text-white opacity-0 group-hover/img:opacity-100 transition-opacity"
+                           >
+                             <X size={10} />
+                           </button>
+                         </div>
+                       ))}
+                       {imagePreviews.map((img, i) => (
+                         <div key={`new-${i}`} className="relative aspect-square rounded-lg overflow-hidden border border-luxury-gold/30 ring-1 ring-luxury-gold/20">
+                           <img src={img} className="w-full h-full object-cover" />
+                           <div className="absolute top-1 right-1 p-0.5 bg-luxury-gold rounded-full text-black">
+                             <Plus size={8} />
+                           </div>
+                         </div>
+                       ))}
+                    </div>
+                  )}
+
                   <div className="relative">
                     <input
                       type="file"
                       accept="image/*"
-                      onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                      multiple
+                      onChange={(e) => {
+                        const files = Array.from(e.target.files || []);
+                        setSelectedFiles(prev => [...prev, ...files]);
+                        
+                        // Generate previews
+                        files.forEach(file => {
+                          const reader = new FileReader();
+                          reader.onloadend = () => {
+                            setImagePreviews(prev => [...prev, reader.result as string]);
+                          };
+                          reader.readAsDataURL(file);
+                        });
+                      }}
                       className="hidden"
                       id="imageUpload"
                     />
                     <label
                       htmlFor="imageUpload"
-                      className={`w-full flex items-center justify-center space-x-3 border border-dashed rounded-xl px-4 py-4 cursor-pointer transition-all ${selectedFile
+                      className={`w-full flex items-center justify-center space-x-3 border border-dashed rounded-xl px-4 py-4 cursor-pointer transition-all ${selectedFiles.length > 0
                         ? 'bg-luxury-gold/10 border-luxury-gold text-white shadow-[0_0_15px_rgba(212,175,55,0.1)]'
                         : 'bg-luxury-gray/10 border-luxury-border text-gray-500 hover:border-luxury-gold/50'
                         }`}
                     >
-                      <Upload size={18} className={selectedFile ? 'text-luxury-gold' : ''} />
+                      <Upload size={18} className={selectedFiles.length > 0 ? 'text-luxury-gold' : ''} />
                       <div className="text-left">
-                        <p className="text-[10px] uppercase tracking-widest font-bold">{selectedFile ? 'Image Selected' : 'Choose Local File'}</p>
-                        <p className="text-[9px] text-gray-600 truncate max-w-[200px]">{selectedFile ? selectedFile.name : 'Supports JPG, PNG, WEBP'}</p>
+                        <p className="text-[10px] uppercase tracking-widest font-bold">{selectedFiles.length > 0 ? `${selectedFiles.length} New Selected` : 'Add Selection Images'}</p>
+                        <p className="text-[9px] text-gray-600">Supports JPG, PNG, WEBP (Multiple)</p>
                       </div>
                     </label>
-                  </div>
-
-                  <div className="flex items-center space-x-3">
-                    <div className="h-[1px] flex-1 bg-luxury-border/30"></div>
-                    <span className="text-[8px] font-bold text-gray-700 uppercase tracking-[0.2em]">or use external url</span>
-                    <div className="h-[1px] flex-1 bg-luxury-border/30"></div>
-                  </div>
-
-                  <div className="relative group">
-                    <ImageIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 group-focus-within:text-luxury-gold transition-colors" size={14} />
-                    <input
-                      name="image"
-                      placeholder="https://images.unsplash.com/..."
-                      defaultValue={editingItem?.image}
-                      className="w-full bg-luxury-gray/10 border border-luxury-border rounded-xl pl-10 pr-4 py-2.5 text-xs text-white outline-none focus:border-luxury-gold/50 transition-all placeholder:text-gray-700"
-                    />
                   </div>
                 </div>
               </div>

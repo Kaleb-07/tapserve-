@@ -178,7 +178,7 @@ export const OrdersPage: React.FC = () => {
       <div className="overflow-x-auto bg-luxury-dark/60 rounded-2xl border border-luxury-border shadow-2xl custom-scrollbar">
         <table className="w-full text-left border-collapse table-fixed min-w-[1200px]">
           <thead>
-            <tr className="border-b border-luxury-border text-[10px] uppercase tracking-widest text-luxury-gold bg-luxury-black">
+            <tr className="border-b border-luxury-gold/50 text-[11px] uppercase tracking-[0.2em] text-black bg-luxury-gold">
               <th className="p-4 font-bold w-24">Order ID</th>
               <th className="p-4 font-bold w-28">Time</th>
               <th className="p-4 font-bold w-32">Location</th>

@@ -292,7 +292,7 @@ app.post('/api/items', authMiddleware, async (req, res) => {
         name,
         description,
         price: parseFloat(price),
-        image,
+        images: image, // Store JSON string or single string
         categoryId,
         ingredients,
         inStock: true
@@ -313,7 +313,7 @@ app.patch('/api/items/:id', authMiddleware, async (req, res) => {
         name, 
         description, 
         price: price !== undefined ? parseFloat(price) : undefined, 
-        image, 
+        images: image, // Store updated images
         categoryId,
         ingredients,
         inStock: inStock !== undefined ? inStock : undefined
@@ -388,16 +388,18 @@ app.patch('/api/orders/:id', authMiddleware, async (req, res) => {
 });
 
 
-// 8. Uploads (Database-backed Base64)
-app.post('/api/upload', authMiddleware, upload.single('image'), (req, res) => {
-  if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+// 8. Uploads (Database-backed Base64) - Multiple support
+app.post('/api/upload', authMiddleware, upload.array('images', 10), (req, res) => {
+  if (!req.files || req.files.length === 0) return res.status(400).json({ error: 'No files uploaded' });
   
   try {
-    const base64Image = req.file.buffer.toString('base64');
-    const dataUri = `data:${req.file.mimetype};base64,${base64Image}`;
-    res.json({ url: dataUri });
+    const urls = req.files.map(file => {
+      const base64Image = file.buffer.toString('base64');
+      return `data:${file.mimetype};base64,${base64Image}`;
+    });
+    res.json({ urls });
   } catch (err) {
-    res.status(500).json({ error: 'Failed to process image' });
+    res.status(500).json({ error: 'Failed to process images' });
   }
 });
 

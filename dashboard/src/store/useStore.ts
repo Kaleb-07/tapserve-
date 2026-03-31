@@ -17,7 +17,7 @@ interface MenuItem {
   name: string;
   description: string;
   price: number;
-  image: string;
+  images: string;
   ingredients?: string;
   categoryId: string;
   inStock?: boolean;
