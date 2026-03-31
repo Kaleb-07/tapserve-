@@ -11,6 +11,7 @@ import { PaymentPage } from './pages/PaymentPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { Toast } from './components/Toast';
 import { ConfirmModal } from './components/ConfirmModal';
+import { ReportsPage } from './pages/ReportsPage';
 import { useStore } from './store/useStore';
 
 const App: React.FC = () => {
@@ -41,6 +42,8 @@ const App: React.FC = () => {
         return <PaymentPage />;
       case 'staff':
         return <StaffManagementPage />;
+      case 'reports':
+        return <ReportsPage />;
       case 'settings':
         return <SettingsPage />;
       case 'profile':

@@ -98,7 +98,8 @@ export const MenuPage: React.FC = () => {
       name: formData.get('name'),
       description: formData.get('description'),
       price: parseFloat(formData.get('price') as string),
-      image: JSON.stringify(currentImages),
+      costPrice: parseFloat(formData.get('costPrice') as string) || 0,
+      image: imageUrl,
       ingredients: allTags.join(', '),
       categoryId: formData.get('categoryId'),
     };
@@ -401,9 +402,15 @@ export const MenuPage: React.FC = () => {
                 <p className="text-[9px] text-gray-700 mt-1 uppercase tracking-widest font-bold">Press Enter or , after each ingredient</p>
               </div>
               <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-xs text-gray-500 uppercase tracking-widest font-bold mb-1 block">Price ($)</label>
-                  <input name="price" type="number" step="0.01" defaultValue={editingItem?.price} required className="w-full bg-luxury-gray/20 border border-luxury-border rounded-lg px-4 py-2 text-white outline-none focus:border-luxury-gold" />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs text-gray-500 uppercase tracking-widest font-bold mb-1 block">Price ($)</label>
+                    <input name="price" type="number" step="0.01" defaultValue={editingItem?.price} required className="w-full bg-luxury-gray/20 border border-luxury-border rounded-lg px-4 py-2 text-white outline-none focus:border-luxury-gold" />
+                  </div>
+                  <div>
+                    <label className="text-xs text-luxury-gold/50 uppercase tracking-widest font-bold mb-1 block">Cost ($)</label>
+                    <input name="costPrice" type="number" step="0.01" defaultValue={editingItem?.costPrice} className="w-full bg-luxury-gold/5 border border-luxury-gold/20 rounded-lg px-4 py-2 text-white outline-none focus:border-luxury-gold" />
+                  </div>
                 </div>
                 <div>
                   <label className="text-xs text-gray-500 uppercase tracking-widest font-bold mb-1 block">Category</label>

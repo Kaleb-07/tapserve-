@@ -22,7 +22,8 @@ model MenuItem {
   name          String
   description   String?     @db.Text
   price         Float
-  images        String?     @db.LongText
+  costPrice     Float?      @default(0) // Raw cost of the item
+  image         String?     @db.LongText
   ingredients   String?     @db.Text
   inStock       Boolean     @default(true)
   categoryId    String
@@ -37,6 +38,7 @@ model Order {
   sourceType    String      // Table, Room, Event, Delivery
   sourceId      String?     // e.g., "5", "101", "Gala-Event"
   mealType      String?     // BREAKFAST, LUNCH, DINNER
+  paymentMethod String?     // CARD, ROOM, CASH
   totalPrice    Float
   status        String      @default("PENDING") // PENDING, PREPARING, READY, DELIVERED
   paymentStatus String      @default("UNPAID")  // UNPAID, PAID
@@ -48,16 +50,17 @@ model Order {
 }
 
 model OrderItem {
-  id             String   @id @default(uuid())
-  orderId        String
-  order          Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  menuItemId     String
-  menuItem       MenuItem @relation(fields: [menuItemId], references: [id])
-  quantity       Int      @default(1)
-  priceAtOrder   Float
-  customizations String?  @db.Text
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id               String   @id @default(uuid())
+  orderId          String
+  order            Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  menuItemId       String
+  menuItem         MenuItem @relation(fields: [menuItemId], references: [id])
+  quantity         Int      @default(1)
+  priceAtOrder     Float
+  costPriceAtOrder Float?   @default(0) // Captured cost at the time of order for profit tracking
+  customizations   String?  @db.Text
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 }
 
 model Source {

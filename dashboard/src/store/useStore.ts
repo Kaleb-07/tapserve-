@@ -20,6 +20,7 @@ interface MenuItem {
   images: string;
   ingredients?: string;
   categoryId: string;
+  costPrice?: number;
   inStock?: boolean;
 }
 
@@ -33,6 +34,7 @@ interface Order {
   notes?: string;
   customerPhone?: string;
   items: any[];
+  mealType?: string;
   createdAt: string;
 }
 
