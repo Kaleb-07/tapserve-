@@ -17,7 +17,7 @@ interface MenuItem {
   name: string;
   description: string;
   price: number;
-  image: string;
+  images: string;
   ingredients?: string;
   categoryId: string;
   costPrice?: number;
@@ -32,6 +32,7 @@ interface Order {
   status: 'PENDING' | 'PREPARING' | 'READY' | 'DELIVERED';
   paymentStatus: 'UNPAID' | 'PAID';
   notes?: string;
+  customerPhone?: string;
   items: any[];
   mealType?: string;
   createdAt: string;

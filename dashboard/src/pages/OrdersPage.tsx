@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useStore } from '../store/useStore';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, MapPin, Loader2, PlusCircle, Star, ChevronDown, ChevronUp } from 'lucide-react';
+import { Clock, MapPin, Loader2, PlusCircle, Star, ChevronDown, ChevronUp, Phone } from 'lucide-react';
 import { ManualOrderModal } from '../components/ManualOrderModal';
 import { DollarSign, CheckCircle2 } from 'lucide-react';
 
@@ -115,6 +115,43 @@ const ExpandableNoteCell = ({ note }: { note?: string }) => {
   );
 };
 
+const LocationCell = ({ order }: { order: any }) => {
+  return (
+    <div className="flex items-center space-x-2 text-sm text-luxury-text font-medium">
+      <div className="w-6 h-6 rounded-full bg-luxury-gold/10 flex items-center justify-center text-luxury-gold border border-luxury-gold/20 flex-shrink-0">
+        <MapPin size={12} />
+      </div>
+      <div className={`flex flex-col ${order.sourceType === 'Pick-Up' ? 'bg-luxury-gold/10 p-2 rounded-xl border border-luxury-gold/30 w-full' : ''}`}>
+        <div className="flex items-center space-x-1.5 mb-1">
+          <span className={`text-[10px] uppercase tracking-widest font-bold ${order.sourceType === 'Pick-Up' ? 'text-luxury-gold' : 'text-gray-500'}`}>
+            {order.sourceType}
+          </span>
+          {order.sourceType === 'Pick-Up' && (
+            <div className="w-1.5 h-1.5 rounded-full bg-luxury-gold animate-pulse" />
+          )}
+        </div>
+        
+        {order.sourceType === 'Pick-Up' ? (
+          <div className="flex flex-col space-y-1">
+            <div className="flex items-center space-x-2 bg-luxury-black/40 px-2 py-1.5 rounded-lg border border-luxury-border/50">
+              <Phone size={10} className="text-emerald-500" />
+              <a 
+                href={`tel:${order.customerPhone}`}
+                className="text-xs font-bold text-luxury-gold hover:text-white transition-colors"
+                title="Click to call"
+              >
+                {order.customerPhone || 'Walk-in'}
+              </a>
+            </div>
+          </div>
+        ) : (
+          <span className="leading-tight text-luxury-text">{order.sourceId || 'Regular'}</span>
+        )}
+      </div>
+    </div>
+  );
+};
+
 export const OrdersPage: React.FC = () => {
   const { orders, fetchOrders, updateOrderStatus, loading, searchQuery } = useStore();
   const [isManualOrderModalOpen, setIsManualOrderModalOpen] = React.useState(false);
@@ -135,10 +172,8 @@ export const OrdersPage: React.FC = () => {
   return (
     <div className="p-4 md:p-8 space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
           <h1 className="text-xl md:text-2xl font-bold text-white">Order Management</h1>
           <p className="text-gray-500 text-xs md:text-sm mt-1">Real-time order feed & status tracking</p>
-        </div>
         <div className="flex flex-wrap gap-3">
           <div className="card-luxury p-2 md:p-3 text-[10px] md:text-sm flex items-center space-x-2">
             <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></div>
@@ -178,7 +213,7 @@ export const OrdersPage: React.FC = () => {
       <div className="overflow-x-auto bg-luxury-dark/60 rounded-2xl border border-luxury-border shadow-2xl custom-scrollbar">
         <table className="w-full text-left border-collapse table-fixed min-w-[1200px]">
           <thead>
-            <tr className="border-b border-luxury-border text-[10px] uppercase tracking-widest text-luxury-gold bg-luxury-black">
+            <tr className="border-b border-luxury-gold/50 text-[11px] uppercase tracking-[0.2em] text-black bg-luxury-gold">
               <th className="p-4 font-bold w-24">Order ID</th>
               <th className="p-4 font-bold w-28">Time</th>
               <th className="p-4 font-bold w-32">Location</th>
@@ -225,16 +260,8 @@ export const OrdersPage: React.FC = () => {
                       <span>{new Date(order.createdAt).toLocaleTimeString()}</span>
                     </div>
                   </td>
-                  <td className="p-4 align-top">
-                    <div className="flex items-center space-x-2 text-sm text-luxury-text font-medium">
-                      <div className="w-6 h-6 rounded-full bg-luxury-gold/10 flex items-center justify-center text-luxury-gold border border-luxury-gold/20">
-                        <MapPin size={12} />
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="text-[9px] text-luxury-gold uppercase tracking-tighter leading-none mb-0.5">{order.sourceType}</span>
-                        <span className="leading-tight">{order.sourceId || 'Regular'}</span>
-                      </div>
-                    </div>
+                   <td className="p-4 align-top">
+                    <LocationCell order={order} />
                   </td>
                   <td className="p-4 align-top overflow-hidden">
                     <OrderItemsCell items={order.items} />

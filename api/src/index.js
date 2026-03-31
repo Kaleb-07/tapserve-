@@ -322,24 +322,16 @@ app.post('/api/items', authMiddleware, async (req, res) => {
 app.patch('/api/items/:id', authMiddleware, async (req, res) => {
   const { name, description, price, costPrice, image, categoryId, inStock, ingredients } = req.body;
   try {
-    const data = {};
-    if (name) data.name = name;
-    if (description) data.description = description;
-    if (price !== undefined) data.price = parseFloat(price);
-    if (image) data.image = image;
-    if (categoryId) data.categoryId = categoryId;
-    if (ingredients) data.ingredients = ingredients;
-    if (inStock !== undefined) data.inStock = inStock;
-
-    try {
-      if (costPrice !== undefined) data.costPrice = parseFloat(costPrice);
-      const item = await prisma.menuItem.update({ where: { id: req.params.id }, data });
-      return res.json(item);
-    } catch (dbErr) {
-      if (dbErr.message.includes('costPrice')) {
-        delete data.costPrice;
-        const item = await prisma.menuItem.update({ where: { id: req.params.id }, data });
-        return res.json(item);
+    const item = await prisma.menuItem.update({
+      where: { id: req.params.id },
+      data: { 
+        name, 
+        description, 
+        price: price !== undefined ? parseFloat(price) : undefined, 
+        images: image, // Store updated images
+        categoryId,
+        ingredients,
+        inStock: inStock !== undefined ? inStock : undefined
       }
       throw dbErr;
     }
@@ -372,30 +364,9 @@ app.get('/api/orders', authMiddleware, async (req, res) => {
 });
 
 app.post('/api/orders', async (req, res) => {
-  const { sourceType, sourceId, mealType, items, totalPrice, notes, paymentMethod } = req.body;
-  try {
-    // 1. Fetch current cost prices
-    const itemIds = items.map(item => item.menuItemId);
-    const dbItems = await prisma.menuItem.findMany({
-      where: { id: { in: itemIds } },
-      select: { id: true, costPrice: true }
-    });
-    
-    const costMap = dbItems.reduce((acc, item) => {
-      acc[item.id] = item.costPrice || 0;
-      return acc;
-    }, {});
-
-    const baseItemData = items.map(item => ({
-      menuItemId: item.menuItemId,
-      quantity: item.quantity,
-      priceAtOrder: item.price !== undefined ? item.price : (item.priceAtOrder || 0),
-      customizations: JSON.stringify(item.customizations),
-    }));
-
-    // 3. Create Order with Multi-Stage Fallback
-    let order;
-    const orderData = {
+  const { sourceType, sourceId, mealType, items, totalPrice, notes, customerPhone } = req.body;
+  const order = await prisma.order.create({
+    data: {
       sourceType,
       sourceId,
       mealType,
@@ -403,7 +374,18 @@ app.post('/api/orders', async (req, res) => {
       totalPrice,
       status: 'PENDING',
       notes,
-    };
+      customerPhone,
+      items: {
+        create: items.map(item => ({
+          menuItemId: item.menuItemId,
+          quantity: item.quantity,
+          priceAtOrder: item.price !== undefined ? item.price : (item.priceAtOrder || 0),
+          customizations: JSON.stringify(item.customizations),
+        })),
+      },
+    },
+    include: { items: { include: { menuItem: true } } },
+  });
 
     const fullItems = {
       create: baseItemData.map((bid, idx) => ({
@@ -465,16 +447,18 @@ app.patch('/api/orders/:id', authMiddleware, async (req, res) => {
 });
 
 
-// 8. Uploads (Database-backed Base64)
-app.post('/api/upload', authMiddleware, upload.single('image'), (req, res) => {
-  if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+// 8. Uploads (Database-backed Base64) - Multiple support
+app.post('/api/upload', authMiddleware, upload.array('images', 10), (req, res) => {
+  if (!req.files || req.files.length === 0) return res.status(400).json({ error: 'No files uploaded' });
   
   try {
-    const base64Image = req.file.buffer.toString('base64');
-    const dataUri = `data:${req.file.mimetype};base64,${base64Image}`;
-    res.json({ url: dataUri });
+    const urls = req.files.map(file => {
+      const base64Image = file.buffer.toString('base64');
+      return `data:${file.mimetype};base64,${base64Image}`;
+    });
+    res.json({ urls });
   } catch (err) {
-    res.status(500).json({ error: 'Failed to process image' });
+    res.status(500).json({ error: 'Failed to process images' });
   }
 });
 
