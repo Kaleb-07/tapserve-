@@ -143,6 +143,7 @@ export const ManualOrderModal: React.FC<ManualOrderModalProps> = ({ isOpen, onCl
         })),
         totalPrice: calculateTotal(),
         notes: orderNotes,
+        customerPhone: sourceType === 'Pick-Up' ? sourceId : null, // Reusing sourceId field or adding phone
         paymentStatus
       };
       await createOrder(orderData);
@@ -279,17 +280,24 @@ export const ManualOrderModal: React.FC<ManualOrderModalProps> = ({ isOpen, onCl
                             >
                               {/* Image */}
                               <div className="h-36 relative overflow-hidden bg-luxury-black flex-shrink-0">
-                                {item.image ? (
-                                  <img
-                                    src={item.image}
-                                    alt={item.name}
-                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                                  />
-                                ) : (
-                                  <div className="w-full h-full flex items-center justify-center text-gray-700">
-                                    <UtensilsCrossed size={32} />
-                                  </div>
-                                )}
+                                {(() => {
+                                  let displayImage = '';
+                                  if (item.images) {
+                                    try {
+                                      const parsed = JSON.parse(item.images);
+                                      displayImage = Array.isArray(parsed) ? parsed[0] : item.images;
+                                    } catch {
+                                      displayImage = item.images;
+                                    }
+                                  }
+                                  return displayImage ? (
+                                    <img src={displayImage} alt={item.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                                  ) : (
+                                    <div className="w-full h-full flex items-center justify-center text-gray-700">
+                                      <UtensilsCrossed size={32} />
+                                    </div>
+                                  );
+                                })()}
                                 {/* Category badge */}
                                 <div className="absolute top-2 left-2 px-2 py-0.5 bg-black/70 rounded-full text-[9px] font-bold text-luxury-gold uppercase tracking-widest backdrop-blur-sm">
                                   {item.categoryName}
@@ -349,7 +357,7 @@ export const ManualOrderModal: React.FC<ManualOrderModalProps> = ({ isOpen, onCl
                       {[
                         { id: 'Table', icon: MapPin, label: 'Table', desc: 'Dining area table' },
                         { id: 'Room', icon: Home, label: 'Room', desc: 'Hotel room service' },
-                        { id: 'VIP', icon: Star, label: 'VIP Lounge', desc: 'Exclusive VIP area' },
+                        { id: 'Pick-Up', icon: Star, label: 'Pick-Up', desc: 'Customer takeaway' },
                         { id: 'Staff', icon: User, label: 'Staff', desc: 'Staff meal request' },
                       ].map((type) => (
                         <button
@@ -376,7 +384,7 @@ export const ManualOrderModal: React.FC<ManualOrderModalProps> = ({ isOpen, onCl
                       <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">
                         {sourceType === 'Table' ? 'Table Number' :
                          sourceType === 'Room' ? 'Room Number' :
-                         sourceType === 'VIP' ? 'VIP Area / Name' : 'Staff Name / ID'}
+                         sourceType === 'Pick-Up' ? 'Customer Phone' : 'Staff Name / ID'}
                       </label>
                       <input
                         type="text"
@@ -386,7 +394,7 @@ export const ManualOrderModal: React.FC<ManualOrderModalProps> = ({ isOpen, onCl
                         placeholder={
                           sourceType === 'Table' ? 'e.g. 12' :
                           sourceType === 'Room' ? 'e.g. 204' :
-                          sourceType === 'VIP' ? 'e.g. Suite A' : 'e.g. Ahmed'
+                          sourceType === 'Pick-Up' ? 'e.g. +1 234 567 890' : 'e.g. Ahmed'
                         }
                         className="w-full bg-luxury-gray/20 border border-luxury-border rounded-2xl px-6 py-4 text-luxury-text text-xl font-bold focus:outline-none focus:border-luxury-gold transition-all placeholder:text-luxury-textDim font-serif"
                       />
@@ -438,13 +446,18 @@ export const ManualOrderModal: React.FC<ManualOrderModalProps> = ({ isOpen, onCl
                         <div key={item.cartId} className="flex items-center justify-between p-4 bg-luxury-gray/10 border border-luxury-border rounded-2xl">
                           <div className="flex items-center space-x-4">
                             <div className="w-12 h-12 rounded-xl overflow-hidden bg-luxury-black border border-luxury-border flex-shrink-0">
-                              {item.image ? (
-                                <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
-                              ) : (
-                                <div className="w-full h-full flex items-center justify-center text-gray-700">
-                                  <UtensilsCrossed size={18} />
-                                </div>
-                              )}
+                               {(() => {
+                                  let displayImage = '';
+                                  if (item.images) {
+                                    try {
+                                      const parsed = JSON.parse(item.images);
+                                      displayImage = Array.isArray(parsed) ? parsed[0] : item.images;
+                                    } catch {
+                                      displayImage = item.images;
+                                    }
+                                  }
+                                  return displayImage ? <img src={displayImage} alt={item.name} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-gray-700"><UtensilsCrossed size={18} /></div>;
+                                })()}
                             </div>
                             <div>
                               <p className="font-bold text-luxury-text text-sm">{item.name}</p>

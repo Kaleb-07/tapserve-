@@ -344,7 +344,7 @@ app.get('/api/orders', authMiddleware, async (req, res) => {
 });
 
 app.post('/api/orders', async (req, res) => {
-  const { sourceType, sourceId, mealType, items, totalPrice, notes } = req.body;
+  const { sourceType, sourceId, mealType, items, totalPrice, notes, customerPhone } = req.body;
   const order = await prisma.order.create({
     data: {
       sourceType,
@@ -353,6 +353,7 @@ app.post('/api/orders', async (req, res) => {
       totalPrice,
       status: 'PENDING',
       notes,
+      customerPhone,
       items: {
         create: items.map(item => ({
           menuItemId: item.menuItemId,
