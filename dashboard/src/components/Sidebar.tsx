@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, ShoppingCart, Utensils, Settings, LogOut, Users, CreditCard, User as UserIcon, ChevronLeft, ChevronRight } from 'lucide-react';
+import { LayoutDashboard, ShoppingCart, Utensils, Settings, LogOut, Users, CreditCard, User as UserIcon, ChevronLeft, ChevronRight, BarChart3 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '../store/useStore';
 
@@ -12,6 +12,7 @@ const getMenuItems = (role: string) => {
   ];
   
   if (role === 'ADMIN') {
+    items.push({ id: 'reports', label: 'Financial Reports', icon: BarChart3 });
     items.push({ id: 'staff', label: 'Staff Management', icon: Users });
     items.push({ id: 'settings', label: 'Global Settings', icon: Settings });
   } else {

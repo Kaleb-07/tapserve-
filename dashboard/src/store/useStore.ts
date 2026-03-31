@@ -20,6 +20,7 @@ interface MenuItem {
   image: string;
   ingredients?: string;
   categoryId: string;
+  costPrice?: number;
   inStock?: boolean;
 }
 
@@ -32,6 +33,7 @@ interface Order {
   paymentStatus: 'UNPAID' | 'PAID';
   notes?: string;
   items: any[];
+  mealType?: string;
   createdAt: string;
 }
 

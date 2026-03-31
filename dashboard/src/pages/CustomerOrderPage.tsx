@@ -65,6 +65,14 @@ export const CustomerOrderPage: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [orderSuccess, setOrderSuccess] = useState<string | null>(null);
+  
+  // Payment States
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [selectedMethod, setSelectedMethod] = useState<'CARD' | 'ROOM' | 'CASH'>('CASH');
+  const [paymentDetails, setPaymentDetails] = useState({
+    cardNumber: '', expiry: '', cvc: '',
+    roomNumber: '', guestName: ''
+  });
 
   useEffect(() => {
     fetchSettings();
@@ -138,12 +146,21 @@ export const CustomerOrderPage: React.FC = () => {
   const handleSubmit = async () => {
     if (!sourceId.trim()) { setError('Please specify your table, room, or suite number.'); return; }
     if (cart.length === 0) { setError('Your cart is empty.'); return; }
+    
+    // Open payment modal instead of submitting immediately
+    setIsPaymentModalOpen(true);
+  };
+
+  const handleFinalSubmit = async () => {
     setError(null);
     setIsSubmitting(true);
+    setIsPaymentModalOpen(false);
     try {
       const res = await axios.post(`${API_URL}/orders`, {
-        sourceType, sourceId,
+        sourceType, 
+        sourceId: selectedMethod === 'ROOM' ? (paymentDetails.roomNumber || sourceId) : sourceId,
         mealType: activeMealType,
+        paymentMethod: selectedMethod,
         items: cart.map(i => ({
           menuItemId: i.id,
           quantity: i.quantity,
@@ -155,9 +172,10 @@ export const CustomerOrderPage: React.FC = () => {
               }) : null,
         })),
         totalPrice: cartTotal,
-        notes: orderNotes,
+        notes: orderNotes + (selectedMethod === 'ROOM' ? ` | Room guest: ${paymentDetails.guestName}` : ''),
       });
       setOrderSuccess(res.data.id);
+      setCart([]); // Clear cart on success
     } catch { 
       setError('Failed to place order. Please try again.'); 
     } finally { 
@@ -512,6 +530,159 @@ export const CustomerOrderPage: React.FC = () => {
                   </button>
                 </div>
               </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {isPaymentModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/80 backdrop-blur-md">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="w-full max-w-lg rounded-[2.5rem] overflow-hidden flex flex-col shadow-2xl bg-luxury-dark border border-luxury-gold/30"
+            >
+              <div className="px-8 py-8 border-b border-luxury-border flex justify-between items-center bg-luxury-black/40">
+                <div>
+                  <h3 className="text-2xl font-bold font-serif text-luxury-text">Settle Experience</h3>
+                  <p className="text-[11px] uppercase tracking-[0.3em] mt-1 text-luxury-gold font-bold">Secure Luxury Payment</p>
+                </div>
+                <button 
+                  onClick={() => setIsPaymentModalOpen(false)}
+                  className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-white/5 transition-colors"
+                >
+                  <Plus size={20} className="rotate-45 opacity-50" />
+                </button>
+              </div>
+
+              <div className="p-8 space-y-8 overflow-y-auto max-h-[70vh] custom-scrollbar">
+                {/* Payment Methods Tabs */}
+                <div className="grid grid-cols-3 gap-4">
+                  {[
+                    { id: 'CARD', label: 'Credit Card', icon: <UtensilsCrossed size={16} /> },
+                    { id: 'ROOM', label: 'Room Charge', icon: <CheckCircle size={16} /> },
+                    { id: 'CASH', label: 'Counter Pay', icon: <Sun size={16} /> }
+                  ].map(m => (
+                    <button
+                      key={m.id}
+                      onClick={() => setSelectedMethod(m.id as any)}
+                      className={`flex flex-col items-center justify-center p-4 rounded-2xl border transition-all ${
+                        selectedMethod === m.id 
+                        ? 'bg-luxury-gold border-luxury-gold text-black shadow-[0_0_20px_rgba(212,175,55,0.2)]' 
+                        : 'bg-luxury-black border-luxury-border text-luxury-textDim hover:border-luxury-gold/50'
+                      }`}
+                    >
+                      <span className="mb-2">{m.icon}</span>
+                      <span className="text-[10px] uppercase font-bold tracking-widest">{m.label}</span>
+                    </button>
+                  ))}
+                </div>
+
+                {/* Method Details */}
+                <div className="space-y-6">
+                  {selectedMethod === 'CARD' && (
+                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
+                      <div className="p-6 rounded-2xl bg-gradient-to-br from-luxury-gray to-luxury-black border border-luxury-gold/20 shadow-inner relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-luxury-gold/5 rounded-full -mr-16 -mt-16 blur-3xl group-hover:bg-luxury-gold/10 transition-all" />
+                        <div className="relative">
+                          <label className="text-[10px] font-bold uppercase tracking-widest text-luxury-gold mb-2 block">Card Number</label>
+                          <input 
+                            type="text" 
+                            placeholder="xxxx xxxx xxxx xxxx"
+                            className="w-full bg-transparent border-b border-luxury-border py-2 text-lg focus:outline-none focus:border-luxury-gold transition-all tracking-[0.2em]"
+                            value={paymentDetails.cardNumber}
+                            onChange={e => setPaymentDetails({...paymentDetails, cardNumber: e.target.value})}
+                          />
+                          <div className="flex gap-8 mt-6">
+                            <div className="flex-1">
+                              <label className="text-[8px] font-bold uppercase tracking-widest text-luxury-textDim mb-1 block">Expiry</label>
+                              <input 
+                                type="text" 
+                                placeholder="MM / YY" 
+                                className="w-full bg-transparent border-b border-luxury-border py-1 text-sm focus:outline-none focus:border-luxury-gold transition-all"
+                                value={paymentDetails.expiry}
+                                onChange={e => setPaymentDetails({...paymentDetails, expiry: e.target.value})}
+                              />
+                            </div>
+                            <div className="flex-1">
+                              <label className="text-[8px] font-bold uppercase tracking-widest text-luxury-textDim mb-1 block">CVC</label>
+                              <input 
+                                type="text" 
+                                placeholder="***" 
+                                className="w-full bg-transparent border-b border-luxury-border py-1 text-sm focus:outline-none focus:border-luxury-gold transition-all"
+                                value={paymentDetails.cvc}
+                                onChange={e => setPaymentDetails({...paymentDetails, cvc: e.target.value})}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <p className="text-[9px] text-center text-luxury-textDim italic">Encrypted via Hotel Secure Systems</p>
+                    </motion.div>
+                  )}
+
+                  {selectedMethod === 'ROOM' && (
+                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
+                      <div className="p-6 rounded-2xl bg-luxury-black/40 border border-luxury-border space-y-4">
+                        <div>
+                          <label className="text-[10px] font-bold uppercase tracking-widest text-luxury-textDim mb-2 block">Guest Name</label>
+                          <input 
+                            type="text" 
+                            placeholder="Enter full name"
+                            className="w-full bg-luxury-dark border border-luxury-border rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-luxury-gold transition-all"
+                            value={paymentDetails.guestName}
+                            onChange={e => setPaymentDetails({...paymentDetails, guestName: e.target.value})}
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] font-bold uppercase tracking-widest text-luxury-textDim mb-2 block">Room Number</label>
+                          <input 
+                            type="text" 
+                            placeholder="e.g. 101"
+                            className="w-full bg-luxury-dark border border-luxury-border rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-luxury-gold transition-all"
+                            value={paymentDetails.roomNumber}
+                            onChange={e => setPaymentDetails({...paymentDetails, roomNumber: e.target.value})}
+                          />
+                        </div>
+                      </div>
+                      <p className="text-[9px] text-center text-luxury-textDim italic">Verification required at check-out</p>
+                    </motion.div>
+                  )}
+
+                  {selectedMethod === 'CASH' && (
+                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="text-center p-8 rounded-2xl bg-luxury-gold/5 border border-dashed border-luxury-gold/50">
+                      <p className="text-sm font-bold font-serif mb-2">Settle at the Counter</p>
+                      <p className="text-[10px] text-luxury-textDim uppercase tracking-wide">Please proceed to our reception to complete your payment.</p>
+                      <div className="mt-6 flex justify-center opacity-30">
+                        <UtensilsCrossed size={40} className="text-luxury-gold" />
+                      </div>
+                    </motion.div>
+                  )}
+                </div>
+
+                {/* Total Recap */}
+                <div className="p-6 rounded-3xl bg-luxury-black border border-luxury-border flex justify-between items-center mt-4 shadow-xl">
+                  <div>
+                    <p className="text-[9px] uppercase tracking-[0.3em] text-luxury-textDim font-bold">Grand Total</p>
+                    <p className="text-3xl font-extrabold font-serif text-luxury-gold mt-1">${cartTotal.toFixed(2)}</p>
+                  </div>
+                  <div className="px-4 py-2 rounded-full border border-luxury-gold/20 bg-luxury-gold/5 text-[9px] font-bold text-luxury-gold uppercase tracking-widest">
+                    Concierge Verified
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-8 border-t border-luxury-border bg-luxury-black/60">
+                <button 
+                  onClick={handleFinalSubmit}
+                  className="w-full py-5 rounded-[1.5rem] font-bold uppercase tracking-[0.3em] text-sm text-black transition-all hover:scale-[1.01] active:scale-[0.99] shadow-[0_10px_30px_rgba(212,175,55,0.2)]"
+                  style={{ background: GOLD_GRADIENT }}
+                >
+                  Authorize Payment
+                </button>
+              </div>
+            </motion.div>
           </div>
         )}
       </AnimatePresence>

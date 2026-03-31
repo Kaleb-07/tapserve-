@@ -278,48 +278,71 @@ app.delete('/api/categories/:id', authMiddleware, async (req, res) => {
 
 // 2. Menu Items
 app.get('/api/items', async (req, res) => {
-  const items = await prisma.menuItem.findMany({
-    include: { category: true },
-  });
-  res.json(items);
+  try {
+    const items = await prisma.menuItem.findMany({
+      include: { category: true },
+    });
+    res.json(items);
+  } catch (err) {
+    console.error('Error fetching items:', err);
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.post('/api/items', authMiddleware, async (req, res) => {
-  const { name, description, price, image, categoryId, ingredients } = req.body;
+  const { name, description, price, costPrice, image, categoryId, ingredients } = req.body;
   try {
-    const item = await prisma.menuItem.create({
-      data: {
-        name,
-        description,
-        price: parseFloat(price),
-        image,
-        categoryId,
-        ingredients,
-        inStock: true
+    const data = {
+      name,
+      description,
+      price: parseFloat(price),
+      image,
+      categoryId,
+      ingredients,
+      inStock: true
+    };
+    
+    try {
+      if (costPrice !== undefined) data.costPrice = parseFloat(costPrice);
+      const item = await prisma.menuItem.create({ data });
+      return res.json(item);
+    } catch (dbErr) {
+      if (dbErr.message.includes('costPrice')) {
+        delete data.costPrice;
+        const item = await prisma.menuItem.create({ data });
+        return res.json(item);
       }
-    });
-    res.json(item);
+      throw dbErr;
+    }
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
 app.patch('/api/items/:id', authMiddleware, async (req, res) => {
-  const { name, description, price, image, categoryId, inStock, ingredients } = req.body;
+  const { name, description, price, costPrice, image, categoryId, inStock, ingredients } = req.body;
   try {
-    const item = await prisma.menuItem.update({
-      where: { id: req.params.id },
-      data: { 
-        name, 
-        description, 
-        price: price !== undefined ? parseFloat(price) : undefined, 
-        image, 
-        categoryId,
-        ingredients,
-        inStock: inStock !== undefined ? inStock : undefined
+    const data = {};
+    if (name) data.name = name;
+    if (description) data.description = description;
+    if (price !== undefined) data.price = parseFloat(price);
+    if (image) data.image = image;
+    if (categoryId) data.categoryId = categoryId;
+    if (ingredients) data.ingredients = ingredients;
+    if (inStock !== undefined) data.inStock = inStock;
+
+    try {
+      if (costPrice !== undefined) data.costPrice = parseFloat(costPrice);
+      const item = await prisma.menuItem.update({ where: { id: req.params.id }, data });
+      return res.json(item);
+    } catch (dbErr) {
+      if (dbErr.message.includes('costPrice')) {
+        delete data.costPrice;
+        const item = await prisma.menuItem.update({ where: { id: req.params.id }, data });
+        return res.json(item);
       }
-    });
-    res.json(item);
+      throw dbErr;
+    }
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -336,37 +359,91 @@ app.delete('/api/items/:id', authMiddleware, async (req, res) => {
 
 // 3. Orders
 app.get('/api/orders', authMiddleware, async (req, res) => {
-  const orders = await prisma.order.findMany({
-    orderBy: { createdAt: 'desc' },
-    include: { items: { include: { menuItem: true } } },
-  });
-  res.json(orders);
+  try {
+    const orders = await prisma.order.findMany({
+      orderBy: { createdAt: 'desc' },
+      include: { items: { include: { menuItem: true } } },
+    });
+    res.json(orders);
+  } catch (err) {
+    console.error('Error fetching orders:', err);
+    res.status(500).json({ error: err.message, stack: err.stack });
+  }
 });
 
 app.post('/api/orders', async (req, res) => {
-  const { sourceType, sourceId, mealType, items, totalPrice, notes } = req.body;
-  const order = await prisma.order.create({
-    data: {
+  const { sourceType, sourceId, mealType, items, totalPrice, notes, paymentMethod } = req.body;
+  try {
+    // 1. Fetch current cost prices
+    const itemIds = items.map(item => item.menuItemId);
+    const dbItems = await prisma.menuItem.findMany({
+      where: { id: { in: itemIds } },
+      select: { id: true, costPrice: true }
+    });
+    
+    const costMap = dbItems.reduce((acc, item) => {
+      acc[item.id] = item.costPrice || 0;
+      return acc;
+    }, {});
+
+    const baseItemData = items.map(item => ({
+      menuItemId: item.menuItemId,
+      quantity: item.quantity,
+      priceAtOrder: item.price !== undefined ? item.price : (item.priceAtOrder || 0),
+      customizations: JSON.stringify(item.customizations),
+    }));
+
+    // 3. Create Order with Multi-Stage Fallback
+    let order;
+    const orderData = {
       sourceType,
       sourceId,
       mealType,
+      paymentMethod: paymentMethod || 'CASH',
       totalPrice,
       status: 'PENDING',
       notes,
-      items: {
-        create: items.map(item => ({
-          menuItemId: item.menuItemId,
-          quantity: item.quantity,
-          priceAtOrder: item.price !== undefined ? item.price : (item.priceAtOrder || 0),
-          customizations: JSON.stringify(item.customizations),
-        })),
-      },
-    },
-    include: { items: { include: { menuItem: true } } },
-  });
+    };
 
-  io.emit('new_order', order);
-  res.status(201).json(order);
+    const fullItems = {
+      create: baseItemData.map((bid, idx) => ({
+        ...bid,
+        costPriceAtOrder: costMap[items[idx].menuItemId] || 0
+      })),
+    };
+
+    try {
+      // 1. Try with everything
+      order = await prisma.order.create({
+        data: { ...orderData, items: fullItems },
+        include: { items: { include: { menuItem: true } } },
+      });
+    } catch (err1) {
+      console.warn('Order creation fallback level 1:', err1.message);
+      try {
+        // 2. Try without costPriceAtOrder
+        order = await prisma.order.create({
+          data: { ...orderData, items: { create: baseItemData } },
+          include: { items: { include: { menuItem: true } } },
+        });
+      } catch (err2) {
+        console.warn('Order creation fallback level 2:', err2.message);
+        // 3. Try without paymentMethod and without costPriceAtOrder
+        const safeOrderData = { ...orderData };
+        delete safeOrderData.paymentMethod;
+        order = await prisma.order.create({
+          data: { ...safeOrderData, items: { create: baseItemData } },
+          include: { items: { include: { menuItem: true } } },
+        });
+      }
+    }
+
+    io.emit('new_order', order);
+    return res.status(201).json(order);
+  } catch (err) {
+    console.error('CRITICAL ORDER ERROR:', err);
+    res.status(500).json({ error: err.message, stack: err.stack });
+  }
 });
 
 app.patch('/api/orders/:id', authMiddleware, async (req, res) => {
@@ -437,6 +514,17 @@ io.on('connection', (socket) => {
 });
 
 const PORT = process.env.PORT || 3001;
+
+// Global Error Handler
+app.use((err, req, res, next) => {
+  console.error('❌ UNHANDLED SERVER ERROR:', err);
+  res.status(500).json({ 
+    error: 'Internal Server Error', 
+    message: err.message,
+    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined 
+  });
+});
+
 server.listen(PORT, () => {
   console.log(`Luxury Menu API running on port ${PORT}`);
 });
