@@ -64,12 +64,12 @@ export const MenuPage: React.FC = () => {
     const formData = new FormData(e.currentTarget);
 
     let currentImages: string[] = [];
-    if (editingItem?.images) {
+    if (editingItem?.image) {
       try {
-        currentImages = JSON.parse(editingItem.images);
-        if (!Array.isArray(currentImages)) currentImages = [editingItem.images];
+        currentImages = JSON.parse(editingItem.image);
+        if (!Array.isArray(currentImages)) currentImages = [editingItem.image];
       } catch {
-        currentImages = [editingItem.images];
+        currentImages = [editingItem.image];
       }
     }
 
@@ -99,7 +99,7 @@ export const MenuPage: React.FC = () => {
       description: formData.get('description'),
       price: parseFloat(formData.get('price') as string),
       costPrice: parseFloat(formData.get('costPrice') as string) || 0,
-      image: imageUrl,
+      image: JSON.stringify(currentImages),
       ingredients: allTags.join(', '),
       categoryId: formData.get('categoryId'),
     };
@@ -299,12 +299,12 @@ export const MenuPage: React.FC = () => {
                 <div className="h-48 relative overflow-hidden bg-luxury-gray">
                   {(() => {
                     let displayImage = '';
-                    if (item.images) {
+                    if (item.image) {
                       try {
-                        const parsed = JSON.parse(item.images);
-                        displayImage = Array.isArray(parsed) ? parsed[0] : item.images;
+                        const parsed = JSON.parse(item.image);
+                        displayImage = Array.isArray(parsed) ? parsed[0] : item.image;
                       } catch {
-                        displayImage = item.images;
+                        displayImage = item.image;
                       }
                     }
                     return displayImage ? (
@@ -425,17 +425,17 @@ export const MenuPage: React.FC = () => {
                 <label className="text-xs text-gray-500 uppercase tracking-widest font-bold mb-2 block">Item Images</label>
                 <div className="space-y-4">
                   {/* Preview Area */}
-                  {((editingItem?.images ? (() => { try { return JSON.parse(editingItem.images); } catch { return [editingItem.images]; } })() : []) as string[]).concat(imagePreviews).length > 0 && (
+                  {((editingItem?.image ? (() => { try { return JSON.parse(editingItem.image); } catch { return [editingItem.image]; } })() : []) as string[]).concat(imagePreviews).length > 0 && (
                     <div className="grid grid-cols-4 gap-2 mb-2">
-                       {((editingItem?.images ? (() => { try { return JSON.parse(editingItem.images); } catch { return [editingItem.images]; } })() : []) as string[]).map((img : string, i: number) => (
+                       {((editingItem?.image ? (() => { try { return JSON.parse(editingItem.image); } catch { return [editingItem.image]; } })() : []) as string[]).map((img : string, i: number) => (
                          <div key={`old-${i}`} className="relative aspect-square rounded-lg overflow-hidden border border-luxury-border group/img">
                            <img src={img} className="w-full h-full object-cover" />
                            <button 
                             type="button"
                             onClick={() => {
-                              const imgs = JSON.parse(editingItem.images);
+                              const imgs = JSON.parse(editingItem.image);
                               imgs.splice(i, 1);
-                              setEditingItem({...editingItem, images: JSON.stringify(imgs)});
+                              setEditingItem({...editingItem, image: JSON.stringify(imgs)});
                             }}
                             className="absolute top-1 right-1 p-1 bg-black/60 rounded-full text-white opacity-0 group-hover/img:opacity-100 transition-opacity"
                            >

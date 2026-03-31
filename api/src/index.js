@@ -41,7 +41,8 @@ const upload = multer({
 });
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 app.use('/uploads', express.static(uploadDir));
 
 // Setup initial data if it doesn't exist
@@ -291,11 +292,19 @@ app.get('/api/items', async (req, res) => {
 
 app.post('/api/items', authMiddleware, async (req, res) => {
   const { name, description, price, costPrice, image, categoryId, ingredients } = req.body;
+  
+  if (!name || !categoryId || price === undefined) {
+    return res.status(400).json({ error: 'Name, Price and Category are required' });
+  }
+
+  const priceVal = parseFloat(price);
+  if (isNaN(priceVal)) return res.status(400).json({ error: 'Invalid price' });
+
   try {
     const data = {
       name,
       description,
-      price: parseFloat(price),
+      price: priceVal,
       image,
       categoryId,
       ingredients,
@@ -303,10 +312,14 @@ app.post('/api/items', authMiddleware, async (req, res) => {
     };
     
     try {
-      if (costPrice !== undefined) data.costPrice = parseFloat(costPrice);
+      if (costPrice !== undefined) {
+        const costVal = parseFloat(costPrice);
+        if (!isNaN(costVal)) data.costPrice = costVal;
+      }
       const item = await prisma.menuItem.create({ data });
       return res.json(item);
     } catch (dbErr) {
+      console.warn('❌ Item creation DB error:', dbErr.message);
       if (dbErr.message.includes('costPrice')) {
         delete data.costPrice;
         const item = await prisma.menuItem.create({ data });
@@ -315,6 +328,7 @@ app.post('/api/items', authMiddleware, async (req, res) => {
       throw dbErr;
     }
   } catch (err) {
+    console.error('❌ CRITICAL ERROR creating item:', err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -322,20 +336,29 @@ app.post('/api/items', authMiddleware, async (req, res) => {
 app.patch('/api/items/:id', authMiddleware, async (req, res) => {
   const { name, description, price, costPrice, image, categoryId, inStock, ingredients } = req.body;
   try {
+    const updateData = {};
+    if (name !== undefined) updateData.name = name;
+    if (description !== undefined) updateData.description = description;
+    if (price !== undefined) {
+      const priceVal = parseFloat(price);
+      if (!isNaN(priceVal)) updateData.price = priceVal;
+    }
+    if (costPrice !== undefined) {
+      const costVal = parseFloat(costPrice);
+      if (!isNaN(costVal)) updateData.costPrice = costVal;
+    }
+    if (image !== undefined) updateData.image = image;
+    if (categoryId !== undefined) updateData.categoryId = categoryId;
+    if (ingredients !== undefined) updateData.ingredients = ingredients;
+    if (inStock !== undefined) updateData.inStock = inStock;
+
     const item = await prisma.menuItem.update({
       where: { id: req.params.id },
-      data: { 
-        name, 
-        description, 
-        price: price !== undefined ? parseFloat(price) : undefined, 
-        images: image, // Store updated images
-        categoryId,
-        ingredients,
-        inStock: inStock !== undefined ? inStock : undefined
-      }
-      throw dbErr;
-    }
+      data: updateData
+    });
+    res.json(item);
   } catch (err) {
+    console.error(`❌ ERROR updating item ${req.params.id}:`, err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -364,53 +387,65 @@ app.get('/api/orders', authMiddleware, async (req, res) => {
 });
 
 app.post('/api/orders', async (req, res) => {
-  const { sourceType, sourceId, mealType, items, totalPrice, notes, customerPhone } = req.body;
-  const order = await prisma.order.create({
-    data: {
+  const { sourceType, sourceId, mealType, items, totalPrice, notes, customerPhone, paymentMethod } = req.body;
+  
+  try {
+    // 1. Prepare base data
+    const baseItemData = items.map(item => ({
+      menuItemId: item.menuItemId,
+      quantity: item.quantity,
+      priceAtOrder: item.price !== undefined ? item.price : (item.priceAtOrder || 0),
+      customizations: typeof item.customizations === 'string' ? item.customizations : JSON.stringify(item.customizations || {}),
+    }));
+
+    const orderData = {
       sourceType,
       sourceId,
       mealType,
       paymentMethod: paymentMethod || 'CASH',
       totalPrice,
       status: 'PENDING',
-      notes,
-      customerPhone,
-      items: {
-        create: items.map(item => ({
-          menuItemId: item.menuItemId,
-          quantity: item.quantity,
-          priceAtOrder: item.price !== undefined ? item.price : (item.priceAtOrder || 0),
-          customizations: JSON.stringify(item.customizations),
-        })),
-      },
-    },
-    include: { items: { include: { menuItem: true } } },
-  });
-
-    const fullItems = {
-      create: baseItemData.map((bid, idx) => ({
-        ...bid,
-        costPriceAtOrder: costMap[items[idx].menuItemId] || 0
-      })),
+      notes: notes || '',
+      customerPhone: customerPhone || ''
     };
 
+    // 2. Fetch cost prices for items
+    let costMap = {};
     try {
-      // 1. Try with everything
+      const dbItems = await prisma.menuItem.findMany({
+        where: { id: { in: items.map(i => i.menuItemId) } }
+      });
+      dbItems.forEach(mi => costMap[mi.id] = mi.costPrice || 0);
+    } catch (e) {
+      console.warn('Could not fetch cost prices, defaulting to 0');
+    }
+
+    let order;
+    try {
+      // Level 1: Try with everything including costPriceAtOrder
       order = await prisma.order.create({
-        data: { ...orderData, items: fullItems },
+        data: { 
+          ...orderData, 
+          items: { 
+            create: baseItemData.map((bid, idx) => ({
+              ...bid,
+              costPriceAtOrder: costMap[items[idx].menuItemId] || 0
+            }))
+          } 
+        },
         include: { items: { include: { menuItem: true } } },
       });
     } catch (err1) {
       console.warn('Order creation fallback level 1:', err1.message);
       try {
-        // 2. Try without costPriceAtOrder
+        // Level 2: Fallback without costPriceAtOrder
         order = await prisma.order.create({
           data: { ...orderData, items: { create: baseItemData } },
           include: { items: { include: { menuItem: true } } },
         });
       } catch (err2) {
         console.warn('Order creation fallback level 2:', err2.message);
-        // 3. Try without paymentMethod and without costPriceAtOrder
+        // Level 3: Deep fallback without paymentMethod and costPriceAtOrder
         const safeOrderData = { ...orderData };
         delete safeOrderData.paymentMethod;
         order = await prisma.order.create({
