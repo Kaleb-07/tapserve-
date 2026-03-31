@@ -31,6 +31,7 @@ interface Order {
   status: 'PENDING' | 'PREPARING' | 'READY' | 'DELIVERED';
   paymentStatus: 'UNPAID' | 'PAID';
   notes?: string;
+  customerPhone?: string;
   items: any[];
   createdAt: string;
 }

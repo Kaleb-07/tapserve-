@@ -13,7 +13,7 @@ interface MenuItem {
   name: string;
   description?: string;
   price: number;
-  image?: string;
+  images?: string;
   ingredients?: string;
   categoryId: string;
   inStock?: boolean;
@@ -56,6 +56,7 @@ export const CustomerOrderPage: React.FC = () => {
   
   const [sourceType, setSourceType] = useState('Table');
   const [sourceId, setSourceId] = useState('');
+  const [customerPhone, setCustomerPhone] = useState('');
   const [orderNotes, setOrderNotes] = useState('');
   
   const [customizingItem, setCustomizingItem] = useState<(MenuItem & { categoryName: string }) | null>(null);
@@ -136,7 +137,8 @@ export const CustomerOrderPage: React.FC = () => {
   };
 
   const handleSubmit = async () => {
-    if (!sourceId.trim()) { setError('Please specify your table, room, or suite number.'); return; }
+    if (sourceType !== 'Pick-Up' && !sourceId.trim()) { setError('Please specify your table, room, or suite number.'); return; }
+    if (sourceType === 'Pick-Up' && !customerPhone.trim()) { setError('Please enter your phone number so we can notify you.'); return; }
     if (cart.length === 0) { setError('Your cart is empty.'); return; }
     setError(null);
     setIsSubmitting(true);
@@ -156,6 +158,7 @@ export const CustomerOrderPage: React.FC = () => {
         })),
         totalPrice: cartTotal,
         notes: orderNotes,
+        customerPhone: sourceType === 'Pick-Up' ? customerPhone : null,
       });
       setOrderSuccess(res.data.id);
     } catch { 
@@ -166,7 +169,7 @@ export const CustomerOrderPage: React.FC = () => {
   };
 
   const handleNewOrder = () => {
-    setCart([]); setSourceId(''); setSourceType('Table');
+    setCart([]); setSourceId(''); setSourceType('Table'); setCustomerPhone('');
     setOrderNotes(''); setSearchTerm(''); setActiveCategory('all');
     setError(null); setOrderSuccess(null);
   };
@@ -294,11 +297,22 @@ export const CustomerOrderPage: React.FC = () => {
                 >
                   <div className="flex gap-4">
                     <div className="w-24 h-24 rounded-[1.5rem] overflow-hidden flex-shrink-0 bg-luxury-gray/50">
-                      {item.image ? (
-                        <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center opacity-20"><UtensilsCrossed size={24} /></div>
-                      )}
+                      {(() => {
+                        let displayImage = '';
+                        if (item.images) {
+                          try {
+                            const parsed = JSON.parse(item.images);
+                            displayImage = Array.isArray(parsed) ? parsed[0] : item.images;
+                          } catch {
+                            displayImage = item.images;
+                          }
+                        }
+                        return displayImage ? (
+                          <img src={displayImage} alt={item.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center opacity-20"><UtensilsCrossed size={24} /></div>
+                        );
+                      })()}
                     </div>
                     <div className="flex-1 min-w-0">
                       <h3 className="text-lg font-bold truncate font-serif">{item.name}</h3>
@@ -366,7 +380,18 @@ export const CustomerOrderPage: React.FC = () => {
              cart.map(item => (
                 <div key={item.cartId} className="flex gap-4 p-3 rounded-2xl bg-luxury-black/20 border border-luxury-border/50">
                   <div className="w-16 h-16 rounded-[1rem] overflow-hidden flex-shrink-0 border border-luxury-border bg-luxury-gray">
-                     {item.image ? <img src={item.image} alt={item.name} className="w-full h-full object-cover" /> : null}
+                     {(() => {
+                        let displayImage = '';
+                        if (item.images) {
+                          try {
+                            const parsed = JSON.parse(item.images);
+                            displayImage = Array.isArray(parsed) ? parsed[0] : item.images;
+                          } catch {
+                            displayImage = item.images;
+                          }
+                        }
+                        return displayImage ? <img src={displayImage} alt={item.name} className="w-full h-full object-cover" /> : null;
+                      })()}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-start">
@@ -398,13 +423,13 @@ export const CustomerOrderPage: React.FC = () => {
           <div className="mb-6 space-y-3">
              <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-luxury-textDim">Service Location</label>
              <div className="flex space-x-2">
-               {['Table', 'Room', 'VIP'].map(type => (
+               {['Table', 'Room', 'VIP', 'Pick-Up'].map(type => (
                  <button
                    key={type}
                    onClick={() => setSourceType(type)}
-                   className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-widest rounded-xl transition-all border ${
+                   className={`flex-1 py-3 text-[10px] font-bold uppercase tracking-widest rounded-xl transition-all border ${
                      sourceType === type 
-                     ? 'bg-luxury-gold text-black border-luxury-gold' 
+                     ? 'bg-luxury-gold text-black border-luxury-gold shadow-lg shadow-luxury-gold/20' 
                      : 'bg-luxury-dark text-luxury-textDim border-luxury-border'
                    }`}
                  >
@@ -413,13 +438,27 @@ export const CustomerOrderPage: React.FC = () => {
                ))}
              </div>
              <div>
-               <input
-                 type="text"
-                 placeholder={`Enter ${sourceType} Number/Name`}
-                 value={sourceId}
-                 onChange={(e) => { setSourceId(e.target.value); setError(null); }}
-                 className="w-full bg-luxury-dark border border-luxury-border rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-luxury-gold transition-all text-luxury-text"
-               />
+               {sourceType === 'Pick-Up' ? (
+                 <div className="space-y-3">
+                   <p className="text-[9px] text-luxury-gold uppercase tracking-[0.2em] font-bold">Registration Phone</p>
+                   <input
+                    type="tel"
+                    placeholder="e.g. +1 234 567 890"
+                    value={customerPhone}
+                    onChange={(e) => { setCustomerPhone(e.target.value); setError(null); }}
+                    className="w-full bg-luxury-dark border border-luxury-gold/50 rounded-xl px-4 py-4 text-sm focus:outline-none focus:border-luxury-gold transition-all text-luxury-text placeholder:text-gray-700 shadow-inner"
+                   />
+                   <p className="text-[9px] text-gray-500 italic">We'll text you when your order is ready for pickup.</p>
+                 </div>
+               ) : (
+                 <input
+                   type="text"
+                   placeholder={`Enter ${sourceType} Number/Name`}
+                   value={sourceId}
+                   onChange={(e) => { setSourceId(e.target.value); setError(null); }}
+                   className="w-full bg-luxury-dark border border-luxury-border rounded-xl px-4 py-4 text-sm focus:outline-none focus:border-luxury-gold transition-all text-luxury-text"
+                 />
+               )}
              </div>
           </div>
 
@@ -528,15 +567,20 @@ export const CustomerOrderPage: React.FC = () => {
                <div className="w-16 h-16 rounded-full flex items-center justify-center mb-6 bg-luxury-gold/10 border border-luxury-gold/20">
                  <CheckCircle size={32} className="text-luxury-gold" />
                </div>
-               <h2 className="text-3xl font-extrabold mb-2 font-serif text-luxury-text">Order Placed</h2>
-               <p className="text-xs mb-6 uppercase tracking-widest text-luxury-textDim">Your selection is being prepared.</p>
+                <h2 className="text-3xl font-extrabold mb-2 font-serif text-luxury-text">Order Placed</h2>
+                <p className="text-xs mb-4 uppercase tracking-widest text-luxury-textDim">Your selection is being prepared.</p>
+                <div className="bg-luxury-gold/5 border border-luxury-gold/30 rounded-xl px-4 py-2 mb-6 w-full">
+                  <p className="text-[10px] font-bold text-luxury-gold uppercase tracking-widest">
+                    We will call you when your order is ready!
+                  </p>
+                </div>
                
                <div className="w-full bg-luxury-black rounded-xl p-4 border border-luxury-border mb-6">
                  <p className="text-[10px] uppercase tracking-widest text-luxury-textDim">Reference Number</p>
                  <p className="font-bold text-lg text-luxury-gold tracking-widest">#{orderSuccess.slice(-6).toUpperCase()}</p>
                  <div className="h-[1px] w-full border-t border-dashed border-luxury-border my-3" />
-                 <p className="text-[10px] uppercase tracking-widest text-luxury-textDim">Delivering to</p>
-                 <p className="font-bold text-luxury-text">{sourceType} {sourceId}</p>
+                 <p className="text-[10px] uppercase tracking-widest text-luxury-textDim">{sourceType === 'Pick-Up' ? 'Contact Information' : 'Delivering to'}</p>
+                 <p className="font-bold text-luxury-text">{sourceType} {sourceType === 'Pick-Up' ? customerPhone : sourceId}</p>
                </div>
                
                <button onClick={handleNewOrder} className="w-full py-4 rounded-xl font-bold uppercase tracking-widest text-xs text-black" style={{ background: GOLD_GRADIENT }}>
