@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, UtensilsCrossed, Plus, Minus, CheckCircle, Sun, Moon, ShoppingCart, X, ChevronRight } from 'lucide-react';
+import { Search, UtensilsCrossed, Plus, Minus, CheckCircle, Sun, Moon, ShoppingCart, X, ChevronRight, ChevronLeft } from 'lucide-react';
 import axios from 'axios';
 
 const API_URL = 'http://localhost:3001/api';
@@ -49,6 +49,45 @@ const th = (dark: boolean) => ({
   successCard: dark ? 'bg-[#111111] border-[#d4af37]/30'    : 'bg-white border-[#d4af37]/40',
   successInner:dark ? 'bg-[#1a1a1a] border-[#1f1f1f]'       : 'bg-[#f5f0e8] border-[#e0d5be]',
 });
+
+const ImageCarousel: React.FC<{ images: string[]; t: any; height: string; rounded?: string }> = ({ images, t, height, rounded = "" }) => {
+  const [idx, setIdx] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+
+  useEffect(() => {
+    if (images.length <= 1 || isPaused) return;
+    const itv = setInterval(() => setIdx(p => (p + 1) % images.length), 4000);
+    return () => clearInterval(itv);
+  }, [images.length, isPaused]);
+  
+  if (images.length === 0) return <div className={`w-full ${height} flex items-center justify-center ${t.cardInner} ${rounded}`}><UtensilsCrossed size={48} className="opacity-20" /></div>;
+  
+  return (
+    <div className={`relative w-full ${height} overflow-hidden ${t.cardInner} ${rounded}`} onMouseEnter={() => setIsPaused(true)} onMouseLeave={() => setIsPaused(false)}>
+      <motion.img key={idx} src={images[idx]} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.6 }}
+        className="w-full h-full object-cover transition-transform hover:scale-110 duration-700" />
+      
+      {images.length > 1 && (
+        <>
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+            {images.map((_, i) => (
+              <button key={i} onClick={(e) => { e.stopPropagation(); setIdx(i); }}
+                className={`h-1 rounded-full transition-all ${i === idx ? 'bg-[#d4af37] w-6' : 'bg-white/40 w-2'}`} />
+            ))}
+          </div>
+          <button onClick={(e) => { e.stopPropagation(); setIdx(p => (p - 1 + images.length) % images.length); }}
+            className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-full bg-black/30 text-white backdrop-blur-md opacity-0 group-hover:opacity-100 transition-opacity">
+            <ChevronLeft size={16} />
+          </button>
+          <button onClick={(e) => { e.stopPropagation(); setIdx(p => (p + 1) % images.length); }}
+            className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-full bg-black/30 text-white backdrop-blur-md opacity-0 group-hover:opacity-100 transition-opacity">
+            <ChevronRight size={16} />
+          </button>
+        </>
+      )}
+    </div>
+  );
+};
 
 export const CustomerOrderPage: React.FC = () => {
   const [isDark, setIsDark] = useState<boolean>(() => localStorage.getItem('customer_theme') === 'dark');
@@ -137,7 +176,7 @@ export const CustomerOrderPage: React.FC = () => {
   };
 
   const handleNewOrder = () => { setCart([]); setSourceId(''); setSourceType('Table'); setCustomerPhone(''); setSearchTerm(''); setActiveCategory('all'); setError(null); setOrderSuccess(null); };
-  const getItemImage = (image?: string) => { if (!image) return ''; try { const p = JSON.parse(image); return Array.isArray(p) ? p[0] : image; } catch { return image; } };
+  const getItemImages = (image?: string): string[] => { if (!image) return []; try { const p = JSON.parse(image); return Array.isArray(p) ? p : [image]; } catch { return [image]; } };
 
   if (loading) return (
     <div className={`min-h-screen flex items-center justify-center ${t.bg}`}>
@@ -243,63 +282,54 @@ export const CustomerOrderPage: React.FC = () => {
             <p className="text-sm font-bold uppercase tracking-widest opacity-40">No items found</p>
           </div>
         ) : gridView ? (
-          <div className="grid grid-cols-2 gap-3 max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
             {items.map((item: any, idx: number) => {
               const cartQty = cart.filter(c => c.id === item.id).reduce((s, c) => s + c.quantity, 0);
-              const img = getItemImage(item.image);
+              const images = getItemImages(item.image);
               return (
-                <motion.div key={item.id} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.2, delay: idx * 0.03 }}
-                  className={`flex flex-col rounded-2xl border overflow-hidden shadow-sm ${t.card}`}>
-                  <div className={`w-full h-36 flex items-center justify-center ${t.cardInner}`}>
-                    {img ? <img src={img} alt={item.name} className="h-28 w-28 object-contain drop-shadow-md" /> : <UtensilsCrossed size={32} className="opacity-20" />}
-                  </div>
-                  <div className="p-3 flex flex-col flex-1">
-                    <h3 className={`font-bold text-sm font-serif text-center leading-tight ${t.text}`}>{item.name}</h3>
-                    {item.description && <p className={`text-[10px] text-center mt-0.5 line-clamp-1 ${t.muted}`}>{item.description}</p>}
-                    <p className="text-[#d4af37] font-bold text-sm text-center mt-2">${item.price.toFixed(2)}</p>
-                    <div className={`flex items-center justify-center gap-2 mt-3 rounded-full border px-2 py-1 self-center ${t.border} ${t.cardInner}`}>
-                      <button onClick={() => { const e = cart.find(c => c.id === item.id); if (e) updateQty(e.cartId, -1); }} disabled={cartQty === 0}
-                        className={`w-6 h-6 rounded-full flex items-center justify-center disabled:opacity-30 ${t.btnHover} ${t.iconMuted}`}>
-                        <Minus size={11} />
-                      </button>
-                      <span className={`w-5 text-center text-xs font-bold ${t.text}`}>{cartQty}</span>
-                      <button onClick={() => item.ingredients ? openCustomizer(item) : addToCart(item)}
-                        className="w-6 h-6 rounded-full flex items-center justify-center bg-[#d4af37] text-black hover:bg-[#f1d592] transition-colors">
-                        <Plus size={11} />
-                      </button>
+                <motion.div key={item.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: idx * 0.05 }}
+                  className={`group flex flex-col rounded-3xl border overflow-hidden shadow-md transition-shadow hover:shadow-xl ${t.card}`}>
+                  <ImageCarousel images={images} t={t} height="h-64" />
+                  <div className="p-5 flex flex-col flex-1">
+                    <div className="flex items-start justify-between gap-4 mb-2">
+                       <h3 className={`font-bold text-xl font-serif leading-tight ${t.text}`}>{item.name}</h3>
+                       <p className="text-[#d4af37] font-extrabold text-lg flex-shrink-0">${item.price.toFixed(2)}</p>
                     </div>
+                    {item.description && <p className={`text-sm mt-1 line-clamp-3 min-h-[3rem] ${t.muted}`}>{item.description}</p>}
+                    <button onClick={() => item.ingredients ? openCustomizer(item) : addToCart(item)}
+                      className="mt-6 w-full py-4 rounded-2xl bg-[#d4af37] text-black text-xs font-bold uppercase tracking-[0.2em] flex items-center justify-center gap-2 hover:bg-[#f1d592] transition-all shadow-lg shadow-[#d4af37]/20 active:scale-95 border-b-2 border-black/10">
+                      <Plus size={16} />
+                      ADD {cartQty > 0 && <span className="bg-black/10 px-2 py-0.5 rounded-lg ml-1">({cartQty} item{cartQty > 1 ? 's' : ''})</span>}
+                    </button>
                   </div>
                 </motion.div>
               );
             })}
           </div>
         ) : (
-          <div className="space-y-3 max-w-4xl mx-auto">
+          <div className="space-y-4 max-w-4xl mx-auto">
             {items.map((item: any, idx: number) => {
               const cartQty = cart.filter(c => c.id === item.id).reduce((s, c) => s + c.quantity, 0);
-              const img = getItemImage(item.image);
+              const images = getItemImages(item.image);
               return (
                 <motion.div key={item.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.2, delay: idx * 0.03 }}
-                  className={`flex items-center gap-3 p-3 rounded-2xl border shadow-sm ${t.card}`}>
-                  <div className={`w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 ${t.cardInner}`}>
-                    {img ? <img src={img} alt={item.name} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center opacity-20"><UtensilsCrossed size={20} /></div>}
+                  className={`group flex items-center gap-4 p-4 rounded-3xl border shadow-sm ${t.card}`}>
+                  <div className="w-40 h-40 flex-shrink-0">
+                    <ImageCarousel images={images} t={t} height="h-full" rounded="rounded-2xl" />
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className={`font-bold text-sm font-serif truncate ${t.text}`}>{item.name}</h3>
-                    {item.description && <p className={`text-xs line-clamp-1 mt-0.5 ${t.muted}`}>{item.description}</p>}
-                    <p className="text-[#d4af37] font-bold text-sm mt-1">${item.price.toFixed(2)}</p>
-                  </div>
-                  <div className={`flex items-center gap-1 rounded-full p-1 border ${t.border} ${t.cardInner}`}>
-                    <button onClick={() => { const e = cart.find(c => c.id === item.id); if (e) updateQty(e.cartId, -1); }} disabled={cartQty === 0}
-                      className={`w-7 h-7 rounded-full flex items-center justify-center transition-colors disabled:opacity-30 ${t.btnHover} ${t.iconMuted}`}>
-                      <Minus size={12} />
-                    </button>
-                    <span className={`w-6 text-center text-xs font-bold ${t.text}`}>{cartQty}</span>
+                  <div className="flex-1 min-w-0 pl-1">
+                    <div className="flex items-start justify-between">
+                      <h3 className={`font-bold text-lg font-serif ${t.text} truncate`}>{item.name}</h3>
+                      <p className="text-[#d4af37] font-extrabold text-base ml-2">${item.price.toFixed(2)}</p>
+                    </div>
+                    {item.description && <p className={`text-sm line-clamp-3 mt-2 ${t.muted}`}>{item.description}</p>}
                     <button onClick={() => item.ingredients ? openCustomizer(item) : addToCart(item)}
-                      className="w-7 h-7 rounded-full flex items-center justify-center bg-[#d4af37] text-black hover:bg-[#f1d592] transition-colors">
-                      <Plus size={12} />
+                      className="mt-4 px-6 py-2.5 rounded-xl bg-[#d4af37] text-black text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-[#f1d592] transition-all shadow-md active:scale-95 border-b-2 border-black/10">
+                      <Plus size={14} />
+                      <span>ADD</span>
+                      {cartQty > 0 && <span className="bg-black/10 px-2 py-0.5 rounded-md ml-1">({cartQty})</span>}
                     </button>
                   </div>
                 </motion.div>
@@ -340,7 +370,8 @@ export const CustomerOrderPage: React.FC = () => {
                     <p className="text-sm font-bold opacity-40">Cart is empty</p>
                   </div>
                 ) : cart.map(item => {
-                  const img = getItemImage(item.image);
+                  const images = getItemImages(item.image);
+                  const img = images.length > 0 ? images[0] : null;
                   return (
                     <div key={item.cartId} className={`flex gap-3 p-3 rounded-xl border ${t.cartItem}`}>
                       {img && <img src={img} alt={item.name} className="w-14 h-14 rounded-lg object-cover flex-shrink-0" />}
