@@ -121,17 +121,17 @@ const LocationCell = ({ order }: { order: any }) => {
       <div className="w-6 h-6 rounded-full bg-luxury-gold/10 flex items-center justify-center text-luxury-gold border border-luxury-gold/20 flex-shrink-0">
         <MapPin size={12} />
       </div>
-      <div className={`flex flex-col ${order.sourceType === 'Pick-Up' ? 'bg-luxury-gold/10 p-2 rounded-xl border border-luxury-gold/30 w-full' : ''}`}>
+      <div className={`flex flex-col ${order.sourceType === 'Outsource' ? 'bg-luxury-gold/10 p-2 rounded-xl border border-luxury-gold/30 w-full' : ''}`}>
         <div className="flex items-center space-x-1.5 mb-1">
-          <span className={`text-[10px] uppercase tracking-widest font-bold ${order.sourceType === 'Pick-Up' ? 'text-luxury-gold' : 'text-gray-500'}`}>
+          <span className={`text-[10px] uppercase tracking-widest font-bold ${order.sourceType === 'Outsource' ? 'text-luxury-gold' : 'text-gray-500'}`}>
             {order.sourceType}
           </span>
-          {order.sourceType === 'Pick-Up' && (
+          {order.sourceType === 'Outsource' && (
             <div className="w-1.5 h-1.5 rounded-full bg-luxury-gold animate-pulse" />
           )}
         </div>
         
-        {order.sourceType === 'Pick-Up' ? (
+        {order.sourceType === 'Outsource' ? (
           <div className="flex flex-col space-y-1">
             <div className="flex items-center space-x-2 bg-luxury-black/40 px-2 py-1.5 rounded-lg border border-luxury-border/50">
               <Phone size={10} className="text-emerald-500" />
