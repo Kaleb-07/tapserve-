@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useStore } from '../store/useStore';
 import { 
   DollarSign, 
@@ -8,13 +8,27 @@ import {
   ArrowDownRight,
   Download,
   Hotel,
-  Smartphone
+  Smartphone,
+  FileText,
+  ShoppingBag,
+  TrendingUp,
+  Loader2
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 export const ReportsPage: React.FC = () => {
-  const { orders } = useStore();
+  const { orders, categories, items, fetchCategories, fetchItems, settings } = useStore();
   const [timeRange, setTimeRange] = useState<'today' | 'week' | 'month'>('today');
+  const [generating, setGenerating] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchCategories();
+    fetchItems();
+  }, [fetchCategories, fetchItems]);
+
+  const restaurantName = settings?.restaurantName || 'Our Restaurant';
 
   // Filter orders based on time range
   const filteredOrders = useMemo(() => {
@@ -82,10 +96,8 @@ export const ReportsPage: React.FC = () => {
       revenue += order.totalPrice;
       count++;
       
-      // Calculate cost from order items
       if (order.items && Array.isArray(order.items)) {
         order.items.forEach((item: any) => {
-          // Use captured cost if available, otherwise fallback to 0
           const cost = (item.costPriceAtOrder || 0) * (item.quantity || 1);
           totalCost += cost;
         });
@@ -95,7 +107,6 @@ export const ReportsPage: React.FC = () => {
     const netProfit = revenue - totalCost;
     const avgValue = count > 0 ? revenue / count : 0;
     
-    // Top Item
     const itemCounts: Record<string, { name: string, count: number }> = {};
     filteredOrders.forEach(o => {
       o.items?.forEach((oi: any) => {
@@ -107,7 +118,6 @@ export const ReportsPage: React.FC = () => {
     
     const topItem = Object.values(itemCounts).sort((a, b) => b.count - a.count)[0]?.name || 'N/A';
 
-    // Distribution
     const sources = {
       TABLE: filteredOrders.filter(o => o.sourceType === 'TABLE').length,
       ROOM: filteredOrders.filter(o => o.sourceType === 'ROOM').length,
@@ -116,6 +126,411 @@ export const ReportsPage: React.FC = () => {
 
     return { revenue, totalCost, netProfit, count, avgValue, sources, topItem };
   }, [filteredOrders]);
+
+  // ─── PDF HELPERS ───────────────────────────────────────────────
+  const addPdfHeader = (doc: jsPDF, title: string, subtitle: string) => {
+    const pageW = doc.internal.pageSize.getWidth();
+    // Gold header bar
+    doc.setFillColor(212, 175, 55);
+    doc.rect(0, 0, pageW, 38, 'F');
+    // Restaurant name
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(18);
+    doc.setTextColor(0, 0, 0);
+    doc.text(restaurantName.toUpperCase(), 14, 16);
+    // Report title
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text(title, 14, 24);
+    // Date
+    doc.setFontSize(8);
+    doc.text(`Generated: ${new Date().toLocaleString()}  |  Period: ${timeRange.toUpperCase()}`, 14, 32);
+    // Subtitle on right
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.text(subtitle, pageW - 14, 24, { align: 'right' });
+  };
+
+  const addPdfFooter = (doc: jsPDF) => {
+    const pageCount = doc.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      const pageW = doc.internal.pageSize.getWidth();
+      const pageH = doc.internal.pageSize.getHeight();
+      doc.setFontSize(7);
+      doc.setTextColor(150, 150, 150);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`${restaurantName} — Confidential Report`, 14, pageH - 8);
+      doc.text(`Page ${i} of ${pageCount}`, pageW - 14, pageH - 8, { align: 'right' });
+      // Gold footer line
+      doc.setDrawColor(212, 175, 55);
+      doc.setLineWidth(0.5);
+      doc.line(14, pageH - 12, pageW - 14, pageH - 12);
+    }
+  };
+
+  // ─── MENU REPORT ───────────────────────────────────────────────
+  const generateMenuReport = async () => {
+    setGenerating('menu');
+    await new Promise(r => setTimeout(r, 300));
+    try {
+      const doc = new jsPDF();
+      const totalItems = items.length;
+      const inStockCount = items.filter(i => i.inStock !== false).length;
+      const avgPrice = totalItems > 0 ? items.reduce((s, i) => s + i.price, 0) / totalItems : 0;
+
+      addPdfHeader(doc, 'MENU INVENTORY REPORT', `${totalItems} Items`);
+
+      // Summary cards
+      let yPos = 48;
+      doc.setFillColor(245, 245, 245);
+      doc.roundedRect(14, yPos, 55, 18, 3, 3, 'F');
+      doc.roundedRect(75, yPos, 55, 18, 3, 3, 'F');
+      doc.roundedRect(136, yPos, 55, 18, 3, 3, 'F');
+
+      doc.setFontSize(7);
+      doc.setTextColor(120, 120, 120);
+      doc.setFont('helvetica', 'normal');
+      doc.text('TOTAL ITEMS', 18, yPos + 6);
+      doc.text('IN STOCK', 79, yPos + 6);
+      doc.text('AVG. PRICE', 140, yPos + 6);
+      
+      doc.setFontSize(14);
+      doc.setTextColor(30, 30, 30);
+      doc.setFont('helvetica', 'bold');
+      doc.text(String(totalItems), 18, yPos + 14);
+      doc.text(String(inStockCount), 79, yPos + 14);
+      doc.text(`$${avgPrice.toFixed(2)}`, 140, yPos + 14);
+
+      yPos += 26;
+
+      // Group items by category
+      if (categories.length > 0) {
+        categories.forEach(cat => {
+          if (cat.items && cat.items.length > 0) {
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(212, 175, 55);
+            doc.text(`${cat.name.toUpperCase()} (${cat.mealType})`, 14, yPos);
+            yPos += 2;
+
+            autoTable(doc, {
+              startY: yPos,
+              head: [['#', 'Item Name', 'Description', 'Price', 'Stock']],
+              body: cat.items.map((item, i) => [
+                String(i + 1),
+                item.name,
+                (item.description || '—').substring(0, 60),
+                `$${item.price.toFixed(2)}`,
+                item.inStock !== false ? 'In Stock' : 'Out'
+              ]),
+              theme: 'grid',
+              headStyles: { fillColor: [30, 30, 30], textColor: [212, 175, 55], fontSize: 7, fontStyle: 'bold', cellPadding: 3 },
+              bodyStyles: { fontSize: 7, cellPadding: 3 },
+              alternateRowStyles: { fillColor: [248, 248, 248] },
+              columnStyles: {
+                0: { cellWidth: 10 },
+                1: { cellWidth: 40, fontStyle: 'bold' },
+                2: { cellWidth: 80 },
+                3: { cellWidth: 25, halign: 'right' },
+                4: { cellWidth: 20, halign: 'center' },
+              },
+              margin: { left: 14, right: 14 },
+            });
+            yPos = (doc as any).lastAutoTable.finalY + 10;
+          }
+        });
+      } else {
+        // Flat list
+        autoTable(doc, {
+          startY: yPos,
+          head: [['#', 'Item Name', 'Description', 'Price', 'Stock']],
+          body: items.map((item, i) => [
+            String(i + 1),
+            item.name,
+            (item.description || '—').substring(0, 60),
+            `$${item.price.toFixed(2)}`,
+            item.inStock !== false ? 'In Stock' : 'Out'
+          ]),
+          theme: 'grid',
+          headStyles: { fillColor: [30, 30, 30], textColor: [212, 175, 55], fontSize: 7, fontStyle: 'bold', cellPadding: 3 },
+          bodyStyles: { fontSize: 7, cellPadding: 3 },
+          alternateRowStyles: { fillColor: [248, 248, 248] },
+          margin: { left: 14, right: 14 },
+        });
+      }
+
+      addPdfFooter(doc);
+      doc.save(`Menu_Report_${new Date().toISOString().slice(0, 10)}.pdf`);
+    } finally {
+      setGenerating(null);
+    }
+  };
+
+  // ─── ORDER REPORT ──────────────────────────────────────────────
+  const generateOrderReport = async () => {
+    setGenerating('order');
+    await new Promise(r => setTimeout(r, 300));
+    try {
+      const doc = new jsPDF('landscape');
+      const totalRev = filteredOrders.reduce((s, o) => s + o.totalPrice, 0);
+
+      addPdfHeader(doc, 'ORDER TRANSACTION REPORT', `${filteredOrders.length} Orders  |  $${totalRev.toFixed(2)} Revenue`);
+
+      // Summary row
+      let yPos = 48;
+      const pending = filteredOrders.filter(o => o.status === 'PENDING').length;
+      const preparing = filteredOrders.filter(o => o.status === 'PREPARING').length;
+      const ready = filteredOrders.filter(o => o.status === 'READY').length;
+      const delivered = filteredOrders.filter(o => o.status === 'DELIVERED').length;
+
+      doc.setFillColor(245, 245, 245);
+      doc.roundedRect(14, yPos, 60, 18, 3, 3, 'F');
+      doc.roundedRect(80, yPos, 60, 18, 3, 3, 'F');
+      doc.roundedRect(146, yPos, 60, 18, 3, 3, 'F');
+      doc.roundedRect(212, yPos, 60, 18, 3, 3, 'F');
+
+      const statCards = [
+        { label: 'PENDING', value: pending, x: 18 },
+        { label: 'PREPARING', value: preparing, x: 84 },
+        { label: 'READY', value: ready, x: 150 },
+        { label: 'DELIVERED', value: delivered, x: 216 },
+      ];
+      statCards.forEach(s => {
+        doc.setFontSize(7);
+        doc.setTextColor(120, 120, 120);
+        doc.setFont('helvetica', 'normal');
+        doc.text(s.label, s.x, yPos + 6);
+        doc.setFontSize(14);
+        doc.setTextColor(30, 30, 30);
+        doc.setFont('helvetica', 'bold');
+        doc.text(String(s.value), s.x, yPos + 14);
+      });
+
+      yPos += 26;
+
+      autoTable(doc, {
+        startY: yPos,
+        head: [['#', 'Order Ref', 'Date & Time', 'Source', 'Location', 'Meal', 'Items', 'Total', 'Status', 'Payment']],
+        body: filteredOrders.map((order, i) => {
+          const itemNames = order.items?.map((oi: any) => `${oi.menuItem?.name || 'Item'} x${oi.quantity || 1}`).join(', ') || '—';
+          return [
+            String(i + 1),
+            `#${order.id.slice(-6).toUpperCase()}`,
+            new Date(order.createdAt).toLocaleString(),
+            order.sourceType,
+            order.sourceId || '—',
+            order.mealType || 'ALL',
+            itemNames.substring(0, 50),
+            `$${order.totalPrice.toFixed(2)}`,
+            order.status,
+            order.paymentStatus,
+          ];
+        }),
+        theme: 'grid',
+        headStyles: { fillColor: [30, 30, 30], textColor: [212, 175, 55], fontSize: 6.5, fontStyle: 'bold', cellPadding: 2.5 },
+        bodyStyles: { fontSize: 6.5, cellPadding: 2.5 },
+        alternateRowStyles: { fillColor: [248, 248, 248] },
+        columnStyles: {
+          0: { cellWidth: 8 },
+          1: { cellWidth: 20, fontStyle: 'bold' },
+          6: { cellWidth: 50 },
+          7: { halign: 'right' },
+        },
+        margin: { left: 14, right: 14 },
+      });
+
+      addPdfFooter(doc);
+      doc.save(`Order_Report_${timeRange}_${new Date().toISOString().slice(0, 10)}.pdf`);
+    } finally {
+      setGenerating(null);
+    }
+  };
+
+  // ─── FINANCE REPORT ────────────────────────────────────────────
+  const generateFinanceReport = async () => {
+    setGenerating('finance');
+    await new Promise(r => setTimeout(r, 300));
+    try {
+      const doc = new jsPDF();
+      
+      addPdfHeader(doc, 'FINANCIAL SUMMARY REPORT', `$${metrics.revenue.toFixed(2)} Revenue`);
+
+      let yPos = 48;
+
+      // Revenue summary cards
+      const summaryData = [
+        { label: 'GROSS REVENUE', value: `$${metrics.revenue.toFixed(2)}` },
+        { label: 'TOTAL COST', value: `$${metrics.totalCost.toFixed(2)}` },
+        { label: 'NET PROFIT', value: `$${metrics.netProfit.toFixed(2)}` },
+        { label: 'PROFIT MARGIN', value: `${metrics.revenue > 0 ? ((metrics.netProfit / metrics.revenue) * 100).toFixed(1) : 0}%` },
+        { label: 'TOTAL ORDERS', value: String(metrics.count) },
+        { label: 'AVG ORDER VALUE', value: `$${metrics.avgValue.toFixed(2)}` },
+      ];
+
+      // 3x2 grid of summary boxes
+      summaryData.forEach((item, i) => {
+        const col = i % 3;
+        const row = Math.floor(i / 3);
+        const x = 14 + col * 62;
+        const y = yPos + row * 24;
+        doc.setFillColor(245, 245, 245);
+        doc.roundedRect(x, y, 56, 20, 3, 3, 'F');
+        doc.setFontSize(7);
+        doc.setTextColor(120, 120, 120);
+        doc.setFont('helvetica', 'normal');
+        doc.text(item.label, x + 4, y + 7);
+        doc.setFontSize(14);
+        doc.setTextColor(30, 30, 30);
+        doc.setFont('helvetica', 'bold');
+        doc.text(item.value, x + 4, y + 16);
+      });
+
+      yPos += 58;
+
+      // Order Distribution
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(212, 175, 55);
+      doc.text('ORDER DISTRIBUTION', 14, yPos);
+      yPos += 2;
+
+      autoTable(doc, {
+        startY: yPos,
+        head: [['Source Type', 'Order Count', 'Percentage']],
+        body: [
+          ['Table Service', String(metrics.sources.TABLE), `${metrics.count > 0 ? ((metrics.sources.TABLE / metrics.count) * 100).toFixed(1) : 0}%`],
+          ['Room Delivery', String(metrics.sources.ROOM), `${metrics.count > 0 ? ((metrics.sources.ROOM / metrics.count) * 100).toFixed(1) : 0}%`],
+          ['Digital / Other', String(metrics.sources.OTHER), `${metrics.count > 0 ? ((metrics.sources.OTHER / metrics.count) * 100).toFixed(1) : 0}%`],
+          ['TOTAL', String(metrics.count), '100%'],
+        ],
+        theme: 'grid',
+        headStyles: { fillColor: [30, 30, 30], textColor: [212, 175, 55], fontSize: 8, fontStyle: 'bold', cellPadding: 4 },
+        bodyStyles: { fontSize: 8, cellPadding: 4 },
+        alternateRowStyles: { fillColor: [248, 248, 248] },
+        columnStyles: {
+          0: { cellWidth: 70, fontStyle: 'bold' },
+          1: { cellWidth: 50, halign: 'center' },
+          2: { cellWidth: 50, halign: 'center' },
+        },
+        margin: { left: 14, right: 14 },
+      });
+      yPos = (doc as any).lastAutoTable.finalY + 12;
+
+      // Payment Methods
+      const paymentMethods: Record<string, { count: number, total: number }> = {};
+      filteredOrders.forEach(o => {
+        const items_arr = o.items || [];
+        const method = (items_arr[0] as any)?.paymentMethod || 'CASH';
+        if (!paymentMethods[method]) paymentMethods[method] = { count: 0, total: 0 };
+        paymentMethods[method].count++;
+        paymentMethods[method].total += o.totalPrice;
+      });
+
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(212, 175, 55);
+      doc.text('PAYMENT BREAKDOWN', 14, yPos);
+      yPos += 2;
+
+      const paidOrders = filteredOrders.filter(o => o.paymentStatus === 'PAID');
+      const unpaidOrders = filteredOrders.filter(o => o.paymentStatus === 'UNPAID');
+
+      autoTable(doc, {
+        startY: yPos,
+        head: [['Payment Status', 'Order Count', 'Revenue', 'Percentage']],
+        body: [
+          ['Paid', String(paidOrders.length), `$${paidOrders.reduce((s, o) => s + o.totalPrice, 0).toFixed(2)}`, `${metrics.count > 0 ? ((paidOrders.length / metrics.count) * 100).toFixed(1) : 0}%`],
+          ['Unpaid', String(unpaidOrders.length), `$${unpaidOrders.reduce((s, o) => s + o.totalPrice, 0).toFixed(2)}`, `${metrics.count > 0 ? ((unpaidOrders.length / metrics.count) * 100).toFixed(1) : 0}%`],
+        ],
+        theme: 'grid',
+        headStyles: { fillColor: [30, 30, 30], textColor: [212, 175, 55], fontSize: 8, fontStyle: 'bold', cellPadding: 4 },
+        bodyStyles: { fontSize: 8, cellPadding: 4 },
+        alternateRowStyles: { fillColor: [248, 248, 248] },
+        margin: { left: 14, right: 14 },
+      });
+      yPos = (doc as any).lastAutoTable.finalY + 12;
+
+      // Top selling items
+      const itemCounts: Record<string, { name: string, count: number, revenue: number }> = {};
+      filteredOrders.forEach(o => {
+        o.items?.forEach((oi: any) => {
+          const name = oi.menuItem?.name || 'Unknown';
+          const price = oi.price || 0;
+          const qty = oi.quantity || 1;
+          if (!itemCounts[name]) itemCounts[name] = { name, count: 0, revenue: 0 };
+          itemCounts[name].count += qty;
+          itemCounts[name].revenue += price * qty;
+        });
+      });
+      const topItems = Object.values(itemCounts).sort((a, b) => b.count - a.count).slice(0, 10);
+
+      if (topItems.length > 0) {
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(212, 175, 55);
+        doc.text('TOP SELLING ITEMS', 14, yPos);
+        yPos += 2;
+
+        autoTable(doc, {
+          startY: yPos,
+          head: [['Rank', 'Item Name', 'Qty Sold', 'Revenue']],
+          body: topItems.map((item, i) => [
+            String(i + 1),
+            item.name,
+            String(item.count),
+            `$${item.revenue.toFixed(2)}`
+          ]),
+          theme: 'grid',
+          headStyles: { fillColor: [30, 30, 30], textColor: [212, 175, 55], fontSize: 8, fontStyle: 'bold', cellPadding: 4 },
+          bodyStyles: { fontSize: 8, cellPadding: 4 },
+          alternateRowStyles: { fillColor: [248, 248, 248] },
+          columnStyles: {
+            0: { cellWidth: 15, halign: 'center' },
+            1: { fontStyle: 'bold' },
+            2: { cellWidth: 30, halign: 'center' },
+            3: { cellWidth: 35, halign: 'right' },
+          },
+          margin: { left: 14, right: 14 },
+        });
+      }
+
+      addPdfFooter(doc);
+      doc.save(`Finance_Report_${timeRange}_${new Date().toISOString().slice(0, 10)}.pdf`);
+    } finally {
+      setGenerating(null);
+    }
+  };
+
+  const reportCards = [
+    {
+      id: 'menu',
+      title: 'Menu Report',
+      description: 'Complete menu inventory with items, prices, cost analysis, and stock status grouped by category.',
+      icon: <FileText size={22} />,
+      count: `${items.length} Items · ${categories.length} Categories`,
+      action: generateMenuReport,
+      gradient: 'from-amber-900/20 to-yellow-900/10',
+    },
+    {
+      id: 'order',
+      title: 'Order Report',
+      description: 'Detailed transaction log with order references, item breakdowns, source tracking, and status.',
+      icon: <ShoppingBag size={22} />,
+      count: `${filteredOrders.length} Orders · ${timeRange}`,
+      action: generateOrderReport,
+      gradient: 'from-emerald-900/20 to-teal-900/10',
+    },
+    {
+      id: 'finance',
+      title: 'Finance Report',
+      description: 'Revenue summary, profit margins, cost breakdown, payment analysis, and top selling items.',
+      icon: <TrendingUp size={22} />,
+      count: `$${metrics.revenue.toFixed(2)} Revenue · ${timeRange}`,
+      action: generateFinanceReport,
+      gradient: 'from-blue-900/20 to-indigo-900/10',
+    },
+  ];
 
   return (
     <div className="p-8 space-y-8 animate-in fade-in duration-700">
@@ -186,7 +601,6 @@ export const ReportsPage: React.FC = () => {
           </div>
 
           <div className="flex-1 flex flex-col items-center justify-center space-y-10">
-            {/* Custom CSS Donut Visual */}
             <div className="relative w-48 h-48 rounded-full border-[12px] border-luxury-gold/5 flex items-center justify-center">
                <div className="absolute inset-0 rounded-full border-[12px] border-t-luxury-gold border-r-luxury-gold/40 border-b-luxury-gold/10 border-l-luxury-gold/60 animate-spin-slow" />
                <div className="text-center">
@@ -232,7 +646,7 @@ export const ReportsPage: React.FC = () => {
               onClick={handleExport}
               className="flex items-center gap-2 px-4 py-2 bg-luxury-gray/10 rounded-xl text-luxury-gold hover:bg-luxury-gold/10 transition-all text-[10px] font-bold uppercase tracking-widest border border-luxury-gold/10"
             >
-              <Download size={14} /> Export Report
+              <Download size={14} /> Export CSV
             </button>
           </div>
 
@@ -282,6 +696,68 @@ export const ReportsPage: React.FC = () => {
               </tbody>
             </table>
           </div>
+        </div>
+      </div>
+
+      {/* ── REPORTS CENTER ── */}
+      <div>
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h2 className="text-2xl font-bold text-luxury-text font-serif tracking-tight">Reports Center</h2>
+            <p className="text-luxury-textDim mt-1 text-sm">
+              Download professional PDF reports for <span className="text-luxury-gold font-bold">menu, orders, and finance</span>
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {reportCards.map((card, i) => (
+            <motion.div
+              key={card.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: i * 0.1 }}
+              whileHover={{ y: -5 }}
+              className={`relative overflow-hidden bg-luxury-dark border border-luxury-border rounded-[2rem] p-6 flex flex-col shadow-lg hover:shadow-luxury-gold/10 transition-all duration-300`}
+            >
+              {/* Gradient overlay */}
+              <div className={`absolute inset-0 bg-gradient-to-br ${card.gradient} pointer-events-none`} />
+              
+              <div className="relative z-10 flex flex-col flex-1">
+                {/* Icon + Title */}
+                <div className="flex items-start justify-between mb-4">
+                  <div className="p-3 bg-luxury-gold/10 border border-luxury-gold/20 rounded-2xl text-luxury-gold">
+                    {card.icon}
+                  </div>
+                </div>
+
+                <h3 className="text-lg font-serif font-bold text-luxury-text mb-2">{card.title}</h3>
+                <p className="text-xs text-luxury-textDim leading-relaxed flex-1 mb-4">{card.description}</p>
+
+                {/* Data count */}
+                <p className="text-[10px] font-bold uppercase tracking-widest text-luxury-gold/70 mb-5">{card.count}</p>
+
+                {/* Download button */}
+                <button 
+                  onClick={card.action}
+                  disabled={generating !== null}
+                  className="flex items-center justify-center gap-2.5 w-full py-3.5 rounded-xl font-bold uppercase tracking-[0.15em] text-[11px] transition-all border-b-2 border-black/10 shadow-lg disabled:opacity-50 bg-luxury-gold text-black hover:bg-[#f1d592] active:scale-95 shadow-luxury-gold/20"
+                >
+                  {generating === card.id ? (
+                    <>
+                      <Loader2 size={15} className="animate-spin" />
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <Download size={15} />
+                      Download PDF
+                    </>
+                  )}
+                </button>
+              </div>
+            </motion.div>
+          ))}
         </div>
       </div>
       
