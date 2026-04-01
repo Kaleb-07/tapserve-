@@ -1,4 +1,4 @@
-import { create } from 'zustand';
+﻿import { create } from 'zustand';
 import axios from 'axios';
 import { io } from 'socket.io-client';
 
@@ -336,7 +336,9 @@ export const useStore = create<AppState>((set) => ({
   },
 
   initTheme: () => {
-    const theme = (localStorage.getItem('luxury_theme') as 'light' | 'dark') || 'dark';
+    const saved = localStorage.getItem('luxury_theme') as 'light' | 'dark' | null;
+    // Customer page defaults to light; admin dashboard defaults to dark
+    const theme = saved ?? 'dark';
     if (theme === 'dark') {
       document.documentElement.classList.add('dark');
     } else {
@@ -407,3 +409,4 @@ socket.on('order_updated', (order) => {
 socket.on('settings_updated', (settings) => {
   useStore.getState().setSettings(settings);
 });
+
