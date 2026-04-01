@@ -282,12 +282,12 @@ export const ManualOrderModal: React.FC<ManualOrderModalProps> = ({ isOpen, onCl
                               <div className="h-36 relative overflow-hidden bg-luxury-black flex-shrink-0">
                                 {(() => {
                                   let displayImage = '';
-                                  if (item.images) {
+                                  if (item.image) {
                                     try {
-                                      const parsed = JSON.parse(item.images);
-                                      displayImage = Array.isArray(parsed) ? parsed[0] : item.images;
+                                      const parsed = JSON.parse(item.image);
+                                      displayImage = Array.isArray(parsed) ? parsed[0] : item.image;
                                     } catch {
-                                      displayImage = item.images;
+                                      displayImage = item.image;
                                     }
                                   }
                                   return displayImage ? (
@@ -448,12 +448,12 @@ export const ManualOrderModal: React.FC<ManualOrderModalProps> = ({ isOpen, onCl
                             <div className="w-12 h-12 rounded-xl overflow-hidden bg-luxury-black border border-luxury-border flex-shrink-0">
                                {(() => {
                                   let displayImage = '';
-                                  if (item.images) {
+                                  if (item.image) {
                                     try {
-                                      const parsed = JSON.parse(item.images);
-                                      displayImage = Array.isArray(parsed) ? parsed[0] : item.images;
+                                      const parsed = JSON.parse(item.image);
+                                      displayImage = Array.isArray(parsed) ? parsed[0] : item.image;
                                     } catch {
-                                      displayImage = item.images;
+                                      displayImage = item.image;
                                     }
                                   }
                                   return displayImage ? <img src={displayImage} alt={item.name} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-gray-700"><UtensilsCrossed size={18} /></div>;
