@@ -59,27 +59,23 @@ const OrderItemsCell = ({ items }: { items: any[] }) => {
   );
 };
 
-const CustomizationsCell = ({ items }: { items: any[] }) => {
-  const customItems = items.flatMap(item => {
+const ExclusionsCell = ({ items }: { items: any[] }) => {
+  const excludedItems = items.flatMap(item => {
     try {
       let customs = JSON.parse(item.customizations);
       if (typeof customs === 'string') customs = JSON.parse(customs);
-      if (customs && (Array.isArray(customs.Excluded) || customs.Instructions)) {
-        return { 
-          itemName: item.menuItem?.name || 'Item', 
-          excluded: Array.isArray(customs.Excluded) ? customs.Excluded : [], 
-          instructions: customs.Instructions || '' 
-        };
+      if (customs && Array.isArray(customs.Excluded) && customs.Excluded.length > 0) {
+        return { itemName: item.menuItem?.name || 'Item', excluded: customs.Excluded };
       }
     } catch (e) {}
     return [];
-  }).filter(c => c.excluded.length > 0 || c.instructions);
+  });
 
-  if (customItems.length === 0) return <span className="text-[10px] text-gray-600 italic uppercase tracking-widest font-bold">None</span>;
+  if (excludedItems.length === 0) return <span className="text-[10px] text-gray-600 italic uppercase tracking-widest font-bold">None</span>;
 
   return (
     <div className="flex flex-col space-y-2">
-      {customItems.map((c, idx) => (
+      {excludedItems.map((c, idx) => (
         <div key={idx} className="flex flex-col mb-1">
           <span className="text-[8px] text-gray-500 uppercase tracking-tighter leading-none mb-0.5">{c.itemName}</span>
           {c.excluded.map((ex: string, i: number) => (
@@ -87,40 +83,58 @@ const CustomizationsCell = ({ items }: { items: any[] }) => {
               NO {ex}
             </span>
           ))}
-          {c.instructions && (
-            <span className="text-amber-400 font-bold tracking-tight text-[10px] leading-tight mt-0.5 italic">
-              "{c.instructions}"
-            </span>
-          )}
         </div>
       ))}
     </div>
   );
 };
 
-const ExpandableNoteCell = ({ note }: { note?: string }) => {
+const InstructionsCell = ({ items, note }: { items: any[], note?: string }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   
-  if (!note) return <span className="text-xs text-gray-600 italic">None</span>;
+  const instructionItems = items.flatMap(item => {
+    try {
+      let customs = JSON.parse(item.customizations);
+      if (typeof customs === 'string') customs = JSON.parse(customs);
+      if (customs && customs.Instructions) {
+        return { itemName: item.menuItem?.name || 'Item', instructions: customs.Instructions };
+      }
+    } catch (e) {}
+    return [];
+  });
 
-  // Assume approx 40 characters limit before needing to expand
-  const shouldTruncate = note.length > 40;
+  if (!note && instructionItems.length === 0) return <span className="text-xs text-gray-600 italic">None</span>;
+
+  const shouldTruncate = note && note.length > 40;
 
   return (
-    <div className="flex flex-col items-start min-w-[150px] max-w-[250px]">
-      <span className="text-[9px] text-luxury-gold uppercase tracking-widest font-bold flex items-center mb-1">
-        <Star size={10} className="mr-1 inline" /> Instruction
-      </span>
-      <span className={`text-xs text-luxury-textDim italic ${!isExpanded && shouldTruncate ? 'line-clamp-2' : 'whitespace-normal'}`}>
-        "{note}"
-      </span>
-      {shouldTruncate && (
-        <button 
-          onClick={() => setIsExpanded(!isExpanded)}
-          className="text-[9px] text-luxury-gold hover:text-luxury-goldLight uppercase tracking-widest mt-1.5 font-bold transition-colors inline-flex items-center"
-        >
-          {isExpanded ? 'View Less' : 'View More'}
-        </button>
+    <div className="flex flex-col items-start min-w-[150px] max-w-[250px] space-y-2">
+      {instructionItems.map((c, idx) => (
+        <div key={`inst-${idx}`} className="flex flex-col">
+          <span className="text-[8px] text-gray-500 uppercase tracking-tighter leading-none mb-0.5">{c.itemName}</span>
+          <span className="text-amber-400 font-bold tracking-tight text-[10px] leading-tight italic">
+            "{c.instructions}"
+          </span>
+        </div>
+      ))}
+      
+      {note && (
+        <div className="flex flex-col mt-1">
+          <span className="text-[9px] text-luxury-gold uppercase tracking-widest font-bold flex items-center mb-1">
+            <Star size={10} className="mr-1 inline" /> Order Note
+          </span>
+          <span className={`text-xs text-luxury-textDim italic ${!isExpanded && shouldTruncate ? 'line-clamp-2' : 'whitespace-normal'}`}>
+            "{note}"
+          </span>
+          {shouldTruncate && (
+            <button 
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="text-[9px] text-luxury-gold hover:text-luxury-goldLight uppercase tracking-widest mt-1.5 font-bold transition-colors inline-flex items-center"
+            >
+              {isExpanded ? 'View Less' : 'View More'}
+            </button>
+          )}
+        </div>
       )}
     </div>
   );
@@ -229,8 +243,8 @@ export const OrdersPage: React.FC = () => {
               <th className="p-4 font-bold w-28">Time</th>
               <th className="p-4 font-bold w-32">Location</th>
               <th className="p-4 font-bold">Items</th>
-              <th className="p-4 font-bold">Item Notes</th>
-              <th className="p-4 font-bold">General Notes</th>
+              <th className="p-4 font-bold">Exclusions</th>
+              <th className="p-4 font-bold">Instruction</th>
               <th className="p-4 font-bold w-24">Total</th>
               <th className="p-4 font-bold w-32">Payment</th>
               <th className="p-4 font-bold text-right w-32">Action</th>
@@ -278,10 +292,10 @@ export const OrdersPage: React.FC = () => {
                     <OrderItemsCell items={order.items} />
                   </td>
                   <td className="p-4 align-top overflow-hidden">
-                    <CustomizationsCell items={order.items} />
+                    <ExclusionsCell items={order.items} />
                   </td>
                   <td className="p-4 align-top overflow-hidden">
-                    <ExpandableNoteCell note={order.notes} />
+                    <InstructionsCell items={order.items} note={order.notes} />
                   </td>
                   <td className="p-4 align-top">
                     <span className="text-base font-serif font-bold text-luxury-gold">${order.totalPrice.toFixed(2)}</span>
