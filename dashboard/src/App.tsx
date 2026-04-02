@@ -15,7 +15,7 @@ import { ReportsPage } from './pages/ReportsPage';
 import { useStore } from './store/useStore';
 
 const App: React.FC = () => {
-  const { token, checkAuth, initTheme, isSidebarCollapsed } = useStore();
+  const { token, checkAuth, initTheme, isSidebarCollapsed, fetchSettings } = useStore();
   const [activeTab, setActiveTab] = React.useState('dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
 
@@ -24,7 +24,8 @@ const App: React.FC = () => {
   React.useEffect(() => {
     checkAuth();
     initTheme();
-  }, [checkAuth, initTheme]);
+    fetchSettings();
+  }, [checkAuth, initTheme, fetchSettings]);
 
   if (!token) {
     return <LoginPage />;
