@@ -59,28 +59,39 @@ const OrderItemsCell = ({ items }: { items: any[] }) => {
   );
 };
 
-const ExclusionsCell = ({ items }: { items: any[] }) => {
-  const allExclusions = items.flatMap(item => {
+const CustomizationsCell = ({ items }: { items: any[] }) => {
+  const customItems = items.flatMap(item => {
     try {
       let customs = JSON.parse(item.customizations);
       if (typeof customs === 'string') customs = JSON.parse(customs);
-      if (customs && Array.isArray(customs.Excluded)) {
-        return customs.Excluded.map((ex: string) => ({ itemName: item.menuItem.name, ingredient: ex }));
+      if (customs && (Array.isArray(customs.Excluded) || customs.Instructions)) {
+        return { 
+          itemName: item.menuItem?.name || 'Item', 
+          excluded: Array.isArray(customs.Excluded) ? customs.Excluded : [], 
+          instructions: customs.Instructions || '' 
+        };
       }
     } catch (e) {}
     return [];
-  });
+  }).filter(c => c.excluded.length > 0 || c.instructions);
 
-  if (allExclusions.length === 0) return <span className="text-[10px] text-gray-600 italic uppercase tracking-widest font-bold">None</span>;
+  if (customItems.length === 0) return <span className="text-[10px] text-gray-600 italic uppercase tracking-widest font-bold">None</span>;
 
   return (
-    <div className="flex flex-col space-y-1.5">
-      {allExclusions.map((ex, idx) => (
-        <div key={idx} className="flex flex-col">
-          <span className="text-[8px] text-gray-500 uppercase tracking-tighter leading-none mb-0.5">{ex.itemName}</span>
-          <span className="text-red-400 font-bold uppercase tracking-widest text-[10px] leading-tight">
-            NO {ex.ingredient}
-          </span>
+    <div className="flex flex-col space-y-2">
+      {customItems.map((c, idx) => (
+        <div key={idx} className="flex flex-col mb-1">
+          <span className="text-[8px] text-gray-500 uppercase tracking-tighter leading-none mb-0.5">{c.itemName}</span>
+          {c.excluded.map((ex: string, i: number) => (
+            <span key={`ex-${i}`} className="text-red-400 font-bold uppercase tracking-widest text-[10px] leading-tight">
+              NO {ex}
+            </span>
+          ))}
+          {c.instructions && (
+            <span className="text-amber-400 font-bold tracking-tight text-[10px] leading-tight mt-0.5 italic">
+              "{c.instructions}"
+            </span>
+          )}
         </div>
       ))}
     </div>
@@ -218,8 +229,8 @@ export const OrdersPage: React.FC = () => {
               <th className="p-4 font-bold w-28">Time</th>
               <th className="p-4 font-bold w-32">Location</th>
               <th className="p-4 font-bold">Items</th>
-              <th className="p-4 font-bold">Exclusions</th>
-              <th className="p-4 font-bold">Instruction</th>
+              <th className="p-4 font-bold">Item Notes</th>
+              <th className="p-4 font-bold">General Notes</th>
               <th className="p-4 font-bold w-24">Total</th>
               <th className="p-4 font-bold w-32">Payment</th>
               <th className="p-4 font-bold text-right w-32">Action</th>
@@ -267,7 +278,7 @@ export const OrdersPage: React.FC = () => {
                     <OrderItemsCell items={order.items} />
                   </td>
                   <td className="p-4 align-top overflow-hidden">
-                    <ExclusionsCell items={order.items} />
+                    <CustomizationsCell items={order.items} />
                   </td>
                   <td className="p-4 align-top overflow-hidden">
                     <ExpandableNoteCell note={order.notes} />

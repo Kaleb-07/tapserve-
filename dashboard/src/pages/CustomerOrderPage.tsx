@@ -94,7 +94,7 @@ export const CustomerOrderPage: React.FC = () => {
   const t = th(isDark);
   const toggleTheme = () => { const n = !isDark; setIsDark(n); localStorage.setItem('customer_theme', n ? 'dark' : 'light'); };
 
-  const [restaurantName, setRestaurantName] = useState('Our Restaurant');
+  const [restaurantName, setRestaurantName] = useState(() => localStorage.getItem('customer_restaurant_name') || 'Our Restaurant');
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeMealType, setActiveMealType] = useState(getInitialMealType());
@@ -119,7 +119,12 @@ export const CustomerOrderPage: React.FC = () => {
   const [paymentDetails, setPaymentDetails] = useState({ cardNumber: '', expiry: '', cvc: '', roomNumber: '', guestName: '' });
 
   useEffect(() => {
-    axios.get(`${API_URL}/settings`).then(r => { if (r.data?.restaurantName) setRestaurantName(r.data.restaurantName); }).catch(() => {});
+    axios.get(`${API_URL}/settings`).then(r => { 
+      if (r.data?.restaurantName) {
+        setRestaurantName(r.data.restaurantName);
+        localStorage.setItem('customer_restaurant_name', r.data.restaurantName);
+      } 
+    }).catch(() => {});
     const p = new URLSearchParams(window.location.search);
     const type = p.get('type'); const id = p.get('id');
     if (type && id) { setSourceType(type.charAt(0).toUpperCase() + type.slice(1).toLowerCase()); setSourceId(id); setIsAutoLocation(true); }
