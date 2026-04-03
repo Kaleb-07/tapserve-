@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Search, UtensilsCrossed, Plus, Minus, CheckCircle, Sun, Moon, ShoppingCart, X, ChevronRight, ChevronLeft } from 'lucide-react';
 import axios from 'axios';
 
-const API_URL = 'http://localhost:3001/api';
+const API_URL = import.meta.env.VITE_API_URL as string;
 
 interface MenuItem { id: string; name: string; description?: string; price: number; image?: string; ingredients?: string; categoryId: string; inStock?: boolean; }
 interface Category { id: string; name: string; items: MenuItem[]; }

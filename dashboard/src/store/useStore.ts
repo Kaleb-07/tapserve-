@@ -1,9 +1,9 @@
-import { create } from 'zustand';
+﻿import { create } from 'zustand';
 import axios from 'axios';
 import { io } from 'socket.io-client';
 
-const API_URL = 'http://localhost:3001/api';
-const socket = io('http://localhost:3001');
+const API_URL = import.meta.env.VITE_API_URL as string;
+const socket = io(import.meta.env.VITE_SOCKET_URL as string);
 
 interface Category {
   id: string;
@@ -336,7 +336,9 @@ export const useStore = create<AppState>((set) => ({
   },
 
   initTheme: () => {
-    const theme = (localStorage.getItem('luxury_theme') as 'light' | 'dark') || 'dark';
+    const saved = localStorage.getItem('luxury_theme') as 'light' | 'dark' | null;
+    // Customer page defaults to light; admin dashboard defaults to dark
+    const theme = saved ?? 'dark';
     if (theme === 'dark') {
       document.documentElement.classList.add('dark');
     } else {
@@ -407,3 +409,4 @@ socket.on('order_updated', (order) => {
 socket.on('settings_updated', (settings) => {
   useStore.getState().setSettings(settings);
 });
+
