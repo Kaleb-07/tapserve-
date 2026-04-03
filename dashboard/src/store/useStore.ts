@@ -2,8 +2,8 @@
 import axios from 'axios';
 import { io } from 'socket.io-client';
 
-const API_URL = 'http://localhost:3001/api';
-const socket = io('http://localhost:3001');
+const API_URL = import.meta.env.VITE_API_URL as string;
+const socket = io(import.meta.env.VITE_SOCKET_URL as string);
 
 interface Category {
   id: string;

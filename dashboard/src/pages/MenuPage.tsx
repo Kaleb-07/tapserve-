@@ -82,7 +82,7 @@ export const MenuPage: React.FC = () => {
       const uploadData = new FormData();
       selectedFiles.forEach(file => uploadData.append('images', file));
       try {
-        const res = await axios.post('http://localhost:3001/api/upload', uploadData);
+        const res = await axios.post(`${import.meta.env.VITE_API_URL}/upload`, uploadData);
         currentImages = [...currentImages, ...res.data.urls];
       } catch (err) {
         console.error('Upload failed:', err);
