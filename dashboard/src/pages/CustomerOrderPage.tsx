@@ -94,7 +94,7 @@ export const CustomerOrderPage: React.FC = () => {
   const t = th(isDark);
   const toggleTheme = () => { const n = !isDark; setIsDark(n); localStorage.setItem('customer_theme', n ? 'dark' : 'light'); };
 
-  const [restaurantName, setRestaurantName] = useState('Our Restaurant');
+  const [restaurantName, setRestaurantName] = useState(() => localStorage.getItem('customer_restaurant_name') || 'Our Restaurant');
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeMealType, setActiveMealType] = useState(getInitialMealType());
@@ -119,7 +119,12 @@ export const CustomerOrderPage: React.FC = () => {
   const [paymentDetails, setPaymentDetails] = useState({ cardNumber: '', expiry: '', cvc: '', roomNumber: '', guestName: '' });
 
   useEffect(() => {
-    axios.get(`${API_URL}/settings`).then(r => { if (r.data?.restaurantName) setRestaurantName(r.data.restaurantName); }).catch(() => {});
+    axios.get(`${API_URL}/settings`).then(r => { 
+      if (r.data?.restaurantName) {
+        setRestaurantName(r.data.restaurantName);
+        localStorage.setItem('customer_restaurant_name', r.data.restaurantName);
+      } 
+    }).catch(() => {});
     const p = new URLSearchParams(window.location.search);
     const type = p.get('type'); const id = p.get('id');
     if (type && id) { setSourceType(type.charAt(0).toUpperCase() + type.slice(1).toLowerCase()); setSourceId(id); setIsAutoLocation(true); }
@@ -156,8 +161,8 @@ export const CustomerOrderPage: React.FC = () => {
   const confirmCustomizer = () => { if (customizingItem) addToCart(customizingItem, excludedIngredients, itemInstructions); setCustomizingItem(null); setExcludedIngredients([]); setItemInstructions(''); };
 
   const handleSubmit = () => {
-    if (sourceType !== 'Pick-Up' && !sourceId.trim()) { setError('Please specify your table, room, or suite number.'); return; }
-    if (sourceType === 'Pick-Up' && !customerPhone.trim()) { setError('Please enter your phone number.'); return; }
+    if (sourceType !== 'Outsource' && !sourceId.trim()) { setError('Please specify your table, room, or suite number.'); return; }
+    if (sourceType === 'Outsource' && !customerPhone.trim()) { setError('Please enter your phone number.'); return; }
     if (cart.length === 0) { setError('Your cart is empty.'); return; }
     setIsPaymentModalOpen(true);
   };
@@ -404,12 +409,12 @@ export const CustomerOrderPage: React.FC = () => {
                   ) : (
                     <>
                       <div className="grid grid-cols-4 gap-1">
-                        {['Table', 'Room', 'VIP', 'Pick-Up'].map(type => (
+                        {['Table', 'Room', 'VIP', 'Outsource'].map(type => (
                           <button key={type} onClick={() => setSourceType(type)}
                             className={`py-2 text-[10px] font-bold uppercase rounded-lg border transition-all ${sourceType === type ? 'bg-[#d4af37] border-[#d4af37] text-black' : `${t.border} ${t.muted}`}`}>{type}</button>
                         ))}
                       </div>
-                      {sourceType === 'Pick-Up'
+                      {sourceType === 'Outsource'
                         ? <input type="tel" placeholder="+1 234 567 890" value={customerPhone} onChange={e => { setCustomerPhone(e.target.value); setError(null); }} className={`w-full rounded-xl px-3 py-2.5 text-sm border focus:outline-none focus:border-[#d4af37] ${t.input}`} />
                         : <input type="text" placeholder={`${sourceType} number`} value={sourceId} onChange={e => { setSourceId(e.target.value); setError(null); }} className={`w-full rounded-xl px-3 py-2.5 text-sm border focus:outline-none focus:border-[#d4af37] ${t.input}`} />
                       }
@@ -537,8 +542,8 @@ export const CustomerOrderPage: React.FC = () => {
                 <p className={`text-[10px] uppercase tracking-widest ${t.muted}`}>Reference</p>
                 <p className="font-bold text-lg text-[#d4af37] tracking-widest">#{orderSuccess.slice(-6).toUpperCase()}</p>
                 <div className={`h-px w-full my-3 border-t ${t.divider}`} />
-                <p className={`text-[10px] uppercase tracking-widest ${t.muted}`}>{sourceType === 'Pick-Up' ? 'Contact' : 'Delivering to'}</p>
-                <p className={`font-bold ${t.text}`}>{sourceType} {sourceType === 'Pick-Up' ? customerPhone : sourceId}</p>
+                <p className={`text-[10px] uppercase tracking-widest ${t.muted}`}>{sourceType === 'Outsource' ? 'Contact' : 'Delivering to'}</p>
+                <p className={`font-bold ${t.text}`}>{sourceType} {sourceType === 'Outsource' ? customerPhone : sourceId}</p>
               </div>
               <button onClick={handleNewOrder} className="w-full py-3.5 rounded-xl font-bold uppercase tracking-widest text-sm text-black bg-[#d4af37] hover:bg-[#f1d592] transition-colors">New Order</button>
             </motion.div>

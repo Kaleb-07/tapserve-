@@ -180,11 +180,10 @@ export const ManualOrderModal: React.FC<ManualOrderModalProps> = ({ isOpen, onCl
               <div className="flex items-center space-x-2 mt-0.5">
                 {[1, 2, 3].map(s => (
                   <div key={s} className="flex items-center space-x-1">
-                    <div className={`flex items-center justify-center w-5 h-5 rounded-full text-[9px] font-bold transition-all ${
-                      step === s ? 'bg-luxury-gold text-black' :
-                      step > s ? 'bg-luxury-gold/30 text-luxury-gold' :
-                      'bg-luxury-border text-gray-600'
-                    }`}>{step > s ? '✓' : s}</div>
+                    <div className={`flex items-center justify-center w-5 h-5 rounded-full text-[9px] font-bold transition-all ${step === s ? 'bg-luxury-gold text-black' :
+                        step > s ? 'bg-luxury-gold/30 text-luxury-gold' :
+                          'bg-luxury-border text-gray-600'
+                      }`}>{step > s ? '✓' : s}</div>
                     <span className={`text-[9px] uppercase tracking-widest font-bold ${step === s ? 'text-luxury-gold' : 'text-gray-600'}`}>
                       {stepTitles[s - 1]}
                     </span>
@@ -235,11 +234,10 @@ export const ManualOrderModal: React.FC<ManualOrderModalProps> = ({ isOpen, onCl
                     <div className="flex space-x-2 overflow-x-auto pb-1 scrollbar-hide">
                       <button
                         onClick={() => setActiveCategory('all')}
-                        className={`flex-shrink-0 px-4 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-widest transition-all ${
-                          activeCategory === 'all'
+                        className={`flex-shrink-0 px-4 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-widest transition-all ${activeCategory === 'all'
                             ? 'bg-luxury-gold text-black shadow-[0_0_12px_rgba(212,175,55,0.3)]'
                             : 'border border-luxury-border text-gray-400 hover:border-luxury-gold/40 hover:text-gray-200'
-                        }`}
+                          }`}
                       >
                         All
                       </button>
@@ -247,11 +245,10 @@ export const ManualOrderModal: React.FC<ManualOrderModalProps> = ({ isOpen, onCl
                         <button
                           key={cat.id}
                           onClick={() => setActiveCategory(cat.id)}
-                          className={`flex-shrink-0 px-4 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-widest transition-all ${
-                            activeCategory === cat.id
+                          className={`flex-shrink-0 px-4 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-widest transition-all ${activeCategory === cat.id
                               ? 'bg-luxury-gold text-black shadow-[0_0_12px_rgba(212,175,55,0.3)]'
                               : 'border border-luxury-border text-gray-400 hover:border-luxury-gold/40 hover:text-gray-200'
-                          }`}
+                            }`}
                         >
                           {cat.name}
                         </button>
@@ -363,11 +360,10 @@ export const ManualOrderModal: React.FC<ManualOrderModalProps> = ({ isOpen, onCl
                         <button
                           key={type.id}
                           onClick={() => setSourceType(type.id)}
-                          className={`p-6 rounded-2xl border transition-all flex flex-col items-center text-center space-y-3 ${
-                            sourceType === type.id
+                          className={`p-6 rounded-2xl border transition-all flex flex-col items-center text-center space-y-3 ${sourceType === type.id
                               ? 'border-luxury-gold bg-luxury-gold/10 text-luxury-gold shadow-[0_0_20px_rgba(212,175,55,0.15)]'
                               : 'border-luxury-border bg-luxury-gray/10 text-gray-400 hover:border-gray-600 hover:text-gray-300'
-                          }`}
+                            }`}
                         >
                           <div className={`p-3 rounded-xl ${sourceType === type.id ? 'bg-luxury-gold/20' : 'bg-luxury-black/50'}`}>
                             <type.icon size={24} />
@@ -383,8 +379,8 @@ export const ManualOrderModal: React.FC<ManualOrderModalProps> = ({ isOpen, onCl
                     <div>
                       <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">
                         {sourceType === 'Table' ? 'Table Number' :
-                         sourceType === 'Room' ? 'Room Number' :
-                         sourceType === 'Pick-Up' ? 'Customer Phone' : 'Staff Name / ID'}
+                          sourceType === 'Room' ? 'Room Number' :
+                            sourceType === 'Pick-Up' ? 'Customer Phone' : 'Staff Name / ID'}
                       </label>
                       <input
                         type="text"
@@ -393,8 +389,8 @@ export const ManualOrderModal: React.FC<ManualOrderModalProps> = ({ isOpen, onCl
                         onChange={(e) => { setSourceId(e.target.value); setError(null); }}
                         placeholder={
                           sourceType === 'Table' ? 'e.g. 12' :
-                          sourceType === 'Room' ? 'e.g. 204' :
-                          sourceType === 'Pick-Up' ? 'e.g. +1 234 567 890' : 'e.g. Ahmed'
+                            sourceType === 'Room' ? 'e.g. 204' :
+                              sourceType === 'Pick-Up' ? 'e.g. +1 234 567 890' : 'e.g. Ahmed'
                         }
                         className="w-full bg-luxury-gray/20 border border-luxury-border rounded-2xl px-6 py-4 text-luxury-text text-xl font-bold focus:outline-none focus:border-luxury-gold transition-all placeholder:text-luxury-textDim font-serif"
                       />
@@ -446,18 +442,18 @@ export const ManualOrderModal: React.FC<ManualOrderModalProps> = ({ isOpen, onCl
                         <div key={item.cartId} className="flex items-center justify-between p-4 bg-luxury-gray/10 border border-luxury-border rounded-2xl">
                           <div className="flex items-center space-x-4">
                             <div className="w-12 h-12 rounded-xl overflow-hidden bg-luxury-black border border-luxury-border flex-shrink-0">
-                               {(() => {
-                                  let displayImage = '';
-                                  if (item.image) {
-                                    try {
-                                      const parsed = JSON.parse(item.image);
-                                      displayImage = Array.isArray(parsed) ? parsed[0] : item.image;
-                                    } catch {
-                                      displayImage = item.image;
-                                    }
+                              {(() => {
+                                let displayImage = '';
+                                if (item.image) {
+                                  try {
+                                    const parsed = JSON.parse(item.image);
+                                    displayImage = Array.isArray(parsed) ? parsed[0] : item.image;
+                                  } catch {
+                                    displayImage = item.image;
                                   }
-                                  return displayImage ? <img src={displayImage} alt={item.name} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-gray-700"><UtensilsCrossed size={18} /></div>;
-                                })()}
+                                }
+                                return displayImage ? <img src={displayImage} alt={item.name} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-gray-700"><UtensilsCrossed size={18} /></div>;
+                              })()}
                             </div>
                             <div>
                               <p className="font-bold text-luxury-text text-sm">{item.name}</p>
@@ -514,11 +510,10 @@ export const ManualOrderModal: React.FC<ManualOrderModalProps> = ({ isOpen, onCl
                       </div>
                       <button
                         onClick={() => setPaymentStatus(prev => prev === 'PAID' ? 'UNPAID' : 'PAID')}
-                        className={`px-4 py-2 rounded-xl text-[10px] uppercase tracking-widest font-bold transition-all ${
-                          paymentStatus === 'PAID'
-                          ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/20'
-                          : 'border border-luxury-gold/30 text-luxury-gold hover:bg-luxury-gold/5'
-                        }`}
+                        className={`px-4 py-2 rounded-xl text-[10px] uppercase tracking-widest font-bold transition-all ${paymentStatus === 'PAID'
+                            ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/20'
+                            : 'border border-luxury-gold/30 text-luxury-gold hover:bg-luxury-gold/5'
+                          }`}
                       >
                         {paymentStatus === 'PAID' ? '✓ Marked as Paid' : 'Mark as Paid'}
                       </button>
@@ -660,32 +655,29 @@ export const ManualOrderModal: React.FC<ManualOrderModalProps> = ({ isOpen, onCl
                     return (
                       <label
                         key={name}
-                        className={`flex items-center space-x-4 p-4 rounded-xl border cursor-pointer transition-all select-none ${
-                          isIncluded
+                        className={`flex items-center space-x-4 p-4 rounded-xl border cursor-pointer transition-all select-none ${isIncluded
                             ? 'bg-luxury-gold/5 border-luxury-gold/40 hover:bg-luxury-gold/10'
                             : 'bg-luxury-gray/5 border-luxury-border/50 hover:bg-luxury-gray/10 opacity-60'
-                        }`}
+                          }`}
                       >
                         {/* Custom checkbox */}
                         <div
                           onClick={() => toggleIngredient(name)}
-                          className={`flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${
-                            isIncluded
+                          className={`flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${isIncluded
                               ? 'bg-luxury-gold border-luxury-gold'
                               : 'bg-transparent border-luxury-border'
-                          }`}
+                            }`}
                         >
                           {isIncluded && (
                             <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
-                              <path d="M1 4L3.5 6.5L9 1" stroke="black" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                              <path d="M1 4L3.5 6.5L9 1" stroke="black" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                             </svg>
                           )}
                         </div>
                         <span
                           onClick={() => toggleIngredient(name)}
-                          className={`flex-1 text-sm font-bold uppercase tracking-wider ${
-                            isIncluded ? 'text-luxury-text' : 'text-luxury-textDim line-through'
-                          }`}
+                          className={`flex-1 text-sm font-bold uppercase tracking-wider ${isIncluded ? 'text-luxury-text' : 'text-luxury-textDim line-through'
+                            }`}
                         >
                           {name}
                         </span>
