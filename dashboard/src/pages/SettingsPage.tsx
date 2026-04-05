@@ -4,17 +4,24 @@ import {
   Save,
   Hotel,
   QrCode,
-  Download
+  Download,
+  Plus,
+  Trash2,
+  MapPin
 } from 'lucide-react';
 import { QRCodeCanvas } from 'qrcode.react';
 import { useStore } from '../store/useStore';
 
 export const SettingsPage: React.FC = () => {
-  const { settings, fetchSettings, updateSettings, showNotification } = useStore();
+  const { settings, fetchSettings, updateSettings, showNotification, sources, fetchSources, addSource, deleteSource } = useStore();
   const [hotelName, setHotelName] = useState('NORA LUXE');
   const [currency, setCurrency] = useState('USD');
   const [supportEmail, setSupportEmail] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  
+  // New Source State
+  const [newSourceType, setNewSourceType] = useState('Table');
+  const [newSourceId, setNewSourceId] = useState('');
   
   // QR Generator State
   const [qrType, setQrType] = useState('Table');
@@ -22,6 +29,7 @@ export const SettingsPage: React.FC = () => {
 
   React.useEffect(() => {
     fetchSettings();
+    fetchSources();
   }, []);
 
   React.useEffect(() => {
@@ -43,6 +51,26 @@ export const SettingsPage: React.FC = () => {
       console.error('Settings save error:', err);
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleAddSource = async () => {
+    if (!newSourceId) return;
+    try {
+      await addSource({ type: newSourceType, identifier: newSourceId });
+      setNewSourceId('');
+      showNotification('Venue location added', 'success');
+    } catch (err) {
+      showNotification('Failed to add location', 'error');
+    }
+  };
+
+  const handleDeleteSource = async (id: string) => {
+    try {
+      await deleteSource(id);
+      showNotification('Location removed', 'info');
+    } catch (err) {
+      showNotification('Failed to remove location', 'error');
     }
   };
 
@@ -107,6 +135,69 @@ export const SettingsPage: React.FC = () => {
                   className="w-full bg-luxury-black border border-luxury-border rounded-lg px-4 py-3 text-sm focus:border-luxury-gold outline-none text-luxury-text" 
                 />
               </div>
+            </div>
+          </div>
+
+          {/* Venue Locations Management */}
+          <div className="card-luxury p-8 space-y-6">
+            <div className="flex items-center space-x-3 text-luxury-gold border-b border-luxury-border pb-4">
+              <MapPin size={20} />
+              <h3 className="font-bold text-lg">Venue Locations</h3>
+            </div>
+            
+            <p className="text-sm text-luxury-textDim">
+              Define the physical areas such as tables or rooms where orders can be placed.
+            </p>
+
+            <div className="flex gap-4">
+              <div className="flex-1">
+                <select 
+                  value={newSourceType}
+                  onChange={(e) => setNewSourceType(e.target.value)}
+                  className="w-full bg-luxury-black border border-luxury-border rounded-lg px-4 py-3 text-sm focus:border-luxury-gold outline-none text-luxury-text"
+                >
+                  <option value="Table">Table</option>
+                  <option value="Room">Room</option>
+                  <option value="VIP">VIP Area</option>
+                </select>
+              </div>
+              <div className="flex-1">
+                <input 
+                  type="text" 
+                  placeholder="ID (e.g. 101)"
+                  value={newSourceId}
+                  onChange={(e) => setNewSourceId(e.target.value)}
+                  className="w-full bg-luxury-black border border-luxury-border rounded-lg px-4 py-3 text-sm focus:border-luxury-gold outline-none text-luxury-text" 
+                />
+              </div>
+              <button 
+                onClick={handleAddSource}
+                className="bg-luxury-gold text-black px-6 py-3 rounded-lg font-bold transition-all active:scale-95"
+              >
+                <Plus size={20} />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 mt-4">
+              {sources.map((s) => (
+                <div key={s.id} className="flex items-center justify-between bg-luxury-black/40 border border-luxury-border/50 px-4 py-3 rounded-xl group">
+                  <div className="flex flex-col">
+                    <span className="text-[10px] text-luxury-gold uppercase font-bold tracking-widest">{s.type}</span>
+                    <span className="text-sm text-luxury-text font-bold">{s.identifier}</span>
+                  </div>
+                  <button 
+                    onClick={() => handleDeleteSource(s.id)}
+                    className="text-luxury-textDim hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              ))}
+              {sources.length === 0 && (
+                <p className="col-span-2 text-center py-8 text-luxury-textDim text-xs italic">
+                  No locations defined yet. Add your first table or room above.
+                </p>
+              )}
             </div>
           </div>
 

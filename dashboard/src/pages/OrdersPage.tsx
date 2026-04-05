@@ -178,7 +178,7 @@ const LocationCell = ({ order }: { order: any }) => {
 };
 
 export const OrdersPage: React.FC = () => {
-  const { orders, fetchOrders, updateOrderStatus, loading, searchQuery } = useStore();
+  const { orders, fetchOrders, updateOrderStatus, loading, searchQuery, user } = useStore();
   const [isManualOrderModalOpen, setIsManualOrderModalOpen] = React.useState(false);
   const [showHistory, setShowHistory] = React.useState(false);
 
@@ -194,11 +194,21 @@ export const OrdersPage: React.FC = () => {
     );
   }
 
+  const isWaiter = user?.role === 'WAITER';
+  const isAdmin = user?.role === 'ADMIN';
+  const isChef = user?.role === 'CHEF';
+
   return (
     <div className="p-4 md:p-8 space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <h1 className="text-xl md:text-2xl font-bold text-white">Order Management</h1>
-          <p className="text-gray-500 text-xs md:text-sm mt-1">Real-time order feed & status tracking</p>
+        <div>
+          <h1 className="text-xl md:text-2xl font-bold text-white font-serif tracking-tight">
+            {isWaiter ? 'My Responsibilities' : 'Order Management'}
+          </h1>
+          <p className="text-gray-500 text-xs md:text-sm mt-1">
+            {isWaiter ? 'Managing tables under your supervision' : 'Real-time order feed & status tracking'}
+          </p>
+        </div>
         <div className="flex flex-wrap gap-3">
           <div className="card-luxury p-2 md:p-3 text-[10px] md:text-sm flex items-center space-x-2">
             <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></div>
@@ -206,7 +216,7 @@ export const OrdersPage: React.FC = () => {
           </div>
           <div className="card-luxury p-2 md:p-3 text-[10px] md:text-sm flex items-center space-x-2">
             <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
-            <span className="text-luxury-text">{orders.filter(o => o.status === 'PREPARING').length} Preparing</span>
+            <span className="text-luxury-text">{orders.filter(o => o.status === 'PREPARING').length} Prep</span>
           </div>
           <button 
             onClick={() => setShowHistory(!showHistory)}
@@ -217,16 +227,18 @@ export const OrdersPage: React.FC = () => {
             }`}
           >
             <Clock size={16} className="md:w-5 md:h-5" />
-            <span>{showHistory ? 'All Orders' : 'Active Only'}</span>
+            <span>{showHistory ? 'All Activity' : 'Active View'}</span>
           </button>
 
-          <button 
-            onClick={() => setIsManualOrderModalOpen(true)}
-            className="btn-gold flex items-center space-x-3 px-4 md:px-6 py-2 md:py-3 rounded-full font-bold text-[10px] md:text-sm shadow-lg hover:shadow-xl transition-all"
-          >
-            <PlusCircle size={16} className="md:w-5 md:h-5" />
-            <span>New Order</span>
-          </button>
+          {(isAdmin || isWaiter) && (
+            <button 
+              onClick={() => setIsManualOrderModalOpen(true)}
+              className="btn-gold flex items-center space-x-3 px-4 md:px-6 py-2 md:py-3 rounded-full font-bold text-[10px] md:text-sm shadow-lg hover:shadow-xl transition-all"
+            >
+              <PlusCircle size={16} className="md:w-5 md:h-5" />
+              <span>Create Order</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -247,7 +259,7 @@ export const OrdersPage: React.FC = () => {
               <th className="p-4 font-bold">Instruction</th>
               <th className="p-4 font-bold w-24">Total</th>
               <th className="p-4 font-bold w-32">Payment</th>
-              <th className="p-4 font-bold text-right w-32">Action</th>
+              <th className="p-4 font-bold text-right w-40">Status & Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -277,12 +289,12 @@ export const OrdersPage: React.FC = () => {
                   className="border-b border-luxury-border/50 hover:bg-luxury-gray/10 transition-colors group"
                 >
                   <td className="p-4 text-sm font-bold text-luxury-text align-top">
-                    #{order.id.slice(-6).toUpperCase()}
+                    #{order.id.slice(-4).toUpperCase()}
                   </td>
                   <td className="p-4 align-top">
                     <div className="flex items-center space-x-2 text-xs text-luxury-textDim font-medium">
                       <Clock size={12} className="text-luxury-gold" />
-                      <span>{new Date(order.createdAt).toLocaleTimeString()}</span>
+                      <span>{new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                     </div>
                   </td>
                    <td className="p-4 align-top">
@@ -301,57 +313,76 @@ export const OrdersPage: React.FC = () => {
                     <span className="text-base font-serif font-bold text-luxury-gold">${order.totalPrice.toFixed(2)}</span>
                   </td>
                   <td className="p-4 align-top">
-                    {/* Interactive Payment Status Badge only */}
-                    <button
-                      disabled={order.paymentStatus === 'PAID'}
-                      onClick={() => updateOrderStatus(order.id, undefined, 'PAID')}
-                      className={`w-full group relative overflow-hidden px-2.5 py-1.5 rounded-lg border text-[8px] font-bold uppercase tracking-widest transition-all ${
-                        order.paymentStatus === 'PAID'
-                        ? 'text-emerald-500 border-emerald-500/20 bg-emerald-500/5 cursor-default'
-                        : 'text-rose-500 border-rose-500/20 bg-rose-500/5 hover:border-emerald-500/50 hover:bg-emerald-500/5 hover:text-emerald-400 cursor-pointer animate-pulse'
-                      }`}
-                    >
-                      <span className="relative z-10 flex items-center justify-center space-x-1">
-                        {order.paymentStatus === 'PAID' ? <CheckCircle2 size={10} /> : <DollarSign size={10} />}
-                        <span>{order.paymentStatus}</span>
-                      </span>
-                    </button>
-                  </td>
-                  <td className="p-4 text-right align-top">
-                    <div className="flex flex-col items-end space-y-2">
-                      {/* Order Status Badge moved here */}
-                      <span className={`px-2 py-0.5 w-max text-center rounded-lg border text-[7px] font-bold uppercase tracking-widest ${statusColors[order.status as keyof typeof statusColors] || statusColors.PENDING}`}>
-                        {order.status}
-                      </span>
-
-                      <div className="flex justify-end">
-                        {order.status === 'PENDING' && (
-                        <button 
-                          onClick={() => updateOrderStatus(order.id, 'PREPARING')}
-                          className="px-3 py-1.5 bg-luxury-gold text-black rounded-lg text-[10px] uppercase tracking-widest font-bold hover:bg-luxury-goldLight transition-colors whitespace-nowrap"
-                        >
-                          Prepare
-                        </button>
+                    {/* Interactive Payment Status Badge */}
+                    <div className="flex flex-col space-y-2">
+                      <button
+                        disabled={order.paymentStatus === 'PAID'}
+                        onClick={() => updateOrderStatus(order.id, undefined, 'PAID')}
+                        className={`w-full group relative overflow-hidden px-2.5 py-1.5 rounded-lg border text-[8px] font-bold uppercase tracking-widest transition-all ${
+                          order.paymentStatus === 'PAID'
+                          ? 'text-emerald-500 border-emerald-500/20 bg-emerald-500/5 cursor-default'
+                          : 'text-rose-500 border-rose-500/20 bg-rose-500/5 hover:border-emerald-500/50 hover:bg-emerald-500/5 hover:text-emerald-400 cursor-pointer'
+                        }`}
+                      >
+                        <span className="relative z-10 flex items-center justify-center space-x-1">
+                          {order.paymentStatus === 'PAID' ? <CheckCircle2 size={10} /> : (order.paymentStatus === 'UNPAID' && !isWaiter ? <DollarSign size={10} className="animate-bounce" /> : <DollarSign size={10} />)}
+                          <span>{order.paymentStatus}</span>
+                        </span>
+                      </button>
+                      
+                      {isWaiter && order.paymentStatus === 'PAID' && (
+                        <p className="text-[7px] text-emerald-500/60 text-center font-bold uppercase">Settled</p>
                       )}
-                      {order.status === 'PREPARING' && (
+                      {isWaiter && order.paymentStatus === 'UNPAID' && (
                         <button 
-                          onClick={() => updateOrderStatus(order.id, 'READY')}
-                          className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-[10px] uppercase tracking-widest font-bold hover:bg-blue-500 transition-colors whitespace-nowrap"
+                          onClick={() => updateOrderStatus(order.id, undefined, 'PAID')}
+                          className="text-[9px] text-luxury-gold hover:text-white underline decoration-luxury-gold/30 transition-all font-bold uppercase tracking-tighter"
                         >
-                          Ready
-                        </button>
-                      )}
-                      {order.status === 'READY' && (
-                        <button 
-                          onClick={() => updateOrderStatus(order.id, 'DELIVERED')}
-                          className="px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-[10px] uppercase tracking-widest font-bold hover:bg-emerald-500 transition-colors whitespace-nowrap"
-                        >
-                          Complete
+                          Mark as Paid
                         </button>
                       )}
                     </div>
-                  </div>
-                </td>
+                  </td>
+                  <td className="p-4 text-right align-top">
+                    <div className="flex flex-col items-end space-y-2">
+                      <span className={`px-2 py-0.5 w-max text-center rounded-lg border text-[7px] font-bold uppercase tracking-widest ${statusColors[order.status as keyof typeof statusColors] || statusColors.PENDING}`}>
+                        {order.status === 'DELIVERED' ? 'SERVED' : order.status}
+                      </span>
+
+                      <div className="flex justify-end w-full">
+                        {(isAdmin || isChef) && order.status === 'PENDING' && (
+                          <button 
+                            onClick={() => updateOrderStatus(order.id, 'PREPARING')}
+                            className="w-full px-3 py-1.5 bg-luxury-gold text-black rounded-lg text-[10px] uppercase tracking-widest font-bold hover:bg-luxury-goldLight transition-all transform hover:scale-105"
+                          >
+                            Prepare
+                          </button>
+                        )}
+                        {(isAdmin || isChef) && order.status === 'PREPARING' && (
+                          <button 
+                            onClick={() => updateOrderStatus(order.id, 'READY')}
+                            className="w-full px-3 py-1.5 bg-blue-600 text-white rounded-lg text-[10px] uppercase tracking-widest font-bold hover:bg-blue-500 transition-all transform hover:scale-105"
+                          >
+                            Mark Ready
+                          </button>
+                        )}
+                        {(isAdmin || isWaiter) && order.status === 'READY' && (
+                          <button 
+                            onClick={() => updateOrderStatus(order.id, 'DELIVERED')}
+                            className="w-full px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-[10px] uppercase tracking-widest font-bold hover:bg-emerald-500 transition-all transform hover:scale-105 shadow-lg shadow-emerald-500/20"
+                          >
+                            Mark Served
+                          </button>
+                        )}
+                        {order.status === 'DELIVERED' && (
+                          <div className="flex items-center space-x-1 text-gray-500 text-[10px] font-bold uppercase tracking-widest">
+                            <CheckCircle2 size={12} />
+                            <span>Done</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </td>
                 </motion.tr>
               ))}
             </AnimatePresence>

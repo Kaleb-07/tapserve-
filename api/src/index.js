@@ -119,17 +119,25 @@ app.post('/api/auth/login', async (req, res) => {
 
 // 0.5. Staff/Users
 app.get('/api/users', authMiddleware, adminOnly, async (req, res) => {
-  const users = await prisma.user.findMany({ select: { id: true, username: true, name: true, role: true, createdAt: true } });
+  const users = await prisma.user.findMany({ 
+    select: { id: true, username: true, name: true, role: true, assignedTables: true, createdAt: true } 
+  });
   res.json(users);
 });
 
 app.post('/api/users', authMiddleware, adminOnly, async (req, res) => {
-  const { username, password, name, role } = req.body;
+  const { username, password, name, role, assignedTables } = req.body;
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = await prisma.user.create({
-      data: { username, password: hashedPassword, name, role: role || 'WAITER' },
-      select: { id: true, username: true, name: true, role: true }
+      data: { 
+        username, 
+        password: hashedPassword, 
+        name, 
+        role: role || 'WAITER',
+        assignedTables: assignedTables || ''
+      },
+      select: { id: true, username: true, name: true, role: true, assignedTables: true }
     });
     res.json(user);
   } catch (err) {
@@ -144,14 +152,15 @@ app.patch('/api/users/:id', authMiddleware, async (req, res) => {
     return res.status(403).json({ error: 'Forbidden' });
   }
 
-  const { name, role, password } = req.body;
+  const { name, role, password, assignedTables } = req.body;
   try {
     const updateData = {};
     if (name !== undefined) updateData.name = name;
     
-    // Only ADMIN can change roles
-    if (role !== undefined && req.user?.role === 'ADMIN') {
-      updateData.role = role;
+    // Only ADMIN can change roles and assignments
+    if (req.user?.role === 'ADMIN') {
+      if (role !== undefined) updateData.role = role;
+      if (assignedTables !== undefined) updateData.assignedTables = assignedTables;
     }
 
     if (password) {
@@ -160,7 +169,7 @@ app.patch('/api/users/:id', authMiddleware, async (req, res) => {
     const user = await prisma.user.update({
       where: { id: req.params.id },
       data: updateData,
-      select: { id: true, username: true, name: true, role: true }
+      select: { id: true, username: true, name: true, role: true, assignedTables: true }
     });
     res.json(user);
   } catch (err) {
@@ -375,14 +384,31 @@ app.delete('/api/items/:id', authMiddleware, async (req, res) => {
 // 3. Orders
 app.get('/api/orders', authMiddleware, async (req, res) => {
   try {
+    let where = {};
+    
+    // Filter by assigned tables if the user is a WAITER
+    if (req.user?.role === 'WAITER') {
+      const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+      if (user?.assignedTables) {
+        const tableIds = user.assignedTables.split(',').map(s => s.trim()).filter(Boolean);
+        console.log('DEBUG [Orders]: Waiter assigned tables:', tableIds);
+        where.sourceType = 'Table';
+        where.sourceId = { in: tableIds };
+      } else {
+        console.log('DEBUG [Orders]: Waiter has no assigned tables');
+        where.sourceId = 'NONE-ASSIGNED'; 
+      }
+    }
+
     const orders = await prisma.order.findMany({
+      where,
       orderBy: { createdAt: 'desc' },
       include: { items: { include: { menuItem: true } } },
     });
     res.json(orders);
   } catch (err) {
-    console.error('Error fetching orders:', err);
-    res.status(500).json({ error: err.message, stack: err.stack });
+    console.error('CRITICAL ERROR [GET /api/orders]:', err);
+    res.status(500).json({ error: err.message });
   }
 });
 
@@ -478,7 +504,63 @@ app.patch('/api/orders/:id', authMiddleware, async (req, res) => {
   });
 
   io.emit('order_updated', order);
+  
+  // If food is ready, send a specific notification
+  if (status === 'READY') {
+    io.emit('food_ready', {
+      orderId: order.id,
+      tableId: order.sourceId,
+      message: `Food is ready for Table ${order.sourceId}`
+    });
+  }
+  
   res.json(order);
+});
+
+// 4. Tables / Sources
+app.get('/api/sources', authMiddleware, async (req, res) => {
+  try {
+    const sources = await prisma.source.findMany({
+      orderBy: { identifier: 'asc' }
+    });
+    res.json(sources);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/sources', authMiddleware, adminOnly, async (req, res) => {
+  const { type, identifier } = req.body;
+  try {
+    const source = await prisma.source.create({
+      data: { type, identifier }
+    });
+    res.json(source);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.patch('/api/sources/:id', authMiddleware, adminOnly, async (req, res) => {
+  const { type, identifier } = req.body;
+  try {
+    const source = await prisma.source.update({
+      where: { id: req.params.id },
+      data: { type, identifier }
+    });
+    res.json(source);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/sources/:id', authMiddleware, adminOnly, async (req, res) => {
+  try {
+    await prisma.source.delete({ where: { id: req.params.id } });
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 

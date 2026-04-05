@@ -1,9 +1,19 @@
-﻿import { create } from 'zustand';
+import { create } from 'zustand';
 import axios from 'axios';
 import { io } from 'socket.io-client';
+import { saveAlert } from '../components/WaiterAlertInbox';
 
 const API_URL = import.meta.env.VITE_API_URL as string;
 const socket = io(import.meta.env.VITE_SOCKET_URL as string);
+
+// Axios Interceptor for Auth
+axios.interceptors.request.use((config) => {
+  const token = localStorage.getItem('luxury_token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
 
 interface Category {
   id: string;
@@ -43,7 +53,14 @@ interface User {
   username: string;
   name: string;
   role: 'ADMIN' | 'WAITER' | 'CHEF';
+  assignedTables?: string; // Comma-separated table identifiers
   createdAt?: string;
+}
+
+interface Source {
+  id: string;
+  type: string;
+  identifier: string;
 }
 
 interface AppState {
@@ -100,6 +117,13 @@ interface AppState {
   // Sidebar reactivity
   isSidebarCollapsed: boolean;
   toggleSidebarCollapse: () => void;
+  // Source Actions (Admin)
+  sources: Source[];
+  fetchSources: () => Promise<void>;
+  addSource: (sourceData: any) => Promise<void>;
+  deleteSource: (id: string) => Promise<void>;
+  // Waiter missed alert check
+  checkMissedReadyOrders: () => Promise<void>;
 }
 
 export const useStore = create<AppState>((set) => ({
@@ -107,6 +131,7 @@ export const useStore = create<AppState>((set) => ({
   categories: [],
   items: [],
   users: [],
+  sources: [],
   loading: false,
   settings: null,
   token: localStorage.getItem('luxury_token'),
@@ -123,10 +148,10 @@ export const useStore = create<AppState>((set) => ({
     set({ loading: true });
     try {
       const res = await axios.get(`${API_URL}/orders`);
-      set({ orders: res.data, loading: false });
+      set({ orders: Array.isArray(res.data) ? res.data : [], loading: false });
     } catch (err) {
-      console.error(err);
-      set({ loading: false });
+      console.error('Fetch orders error:', err);
+      set({ orders: [], loading: false });
     }
   },
 
@@ -154,6 +179,49 @@ export const useStore = create<AppState>((set) => ({
       set({ users: res.data });
     } catch (err) {
       console.error(err);
+    }
+  },
+
+  fetchSources: async () => {
+    const res = await axios.get(`${API_URL}/sources`);
+    set({ sources: res.data });
+  },
+
+  addSource: async (sourceData) => {
+    await axios.post(`${API_URL}/sources`, sourceData);
+    const { fetchSources } = useStore.getState();
+    await fetchSources();
+  },
+
+  deleteSource: async (id) => {
+    await axios.delete(`${API_URL}/sources/${id}`);
+    const { fetchSources } = useStore.getState();
+    await fetchSources();
+  },
+
+  checkMissedReadyOrders: async () => {
+    const { user } = useStore.getState();
+    if (!user || user.role !== 'WAITER') return;
+    try {
+      const res = await axios.get(`${API_URL}/orders`);
+      const orders: Order[] = Array.isArray(res.data) ? res.data : [];
+      const assigned = user.assignedTables?.split(',').map(s => s.trim()).filter(Boolean) || [];
+      const readyOrders = orders.filter(o =>
+        o.status === 'READY' &&
+        (assigned.length === 0 || assigned.includes(o.sourceId))
+      );
+      readyOrders.forEach(order => {
+        saveAlert({
+          id: order.id,
+          orderId: order.id,
+          tableId: order.sourceId,
+          message: `🍽️ Food ready for ${order.sourceType} ${order.sourceId}`,
+          timestamp: new Date().toISOString(),
+          read: false,
+        });
+      });
+    } catch (err) {
+      console.error('Failed to check missed ready orders:', err);
     }
   },
 
@@ -195,7 +263,13 @@ export const useStore = create<AppState>((set) => ({
     const { token, user } = res.data;
     localStorage.setItem('luxury_token', token);
     localStorage.setItem('luxury_user', JSON.stringify(user));
+    // Set axios header for immediate use
+    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     set({ token, user });
+    // Check for missed READY orders on login
+    if (user.role === 'WAITER') {
+      setTimeout(() => useStore.getState().checkMissedReadyOrders(), 500);
+    }
   },
 
   logout: () => {
@@ -408,5 +482,33 @@ socket.on('order_updated', (order) => {
 
 socket.on('settings_updated', (settings) => {
   useStore.getState().setSettings(settings);
+});
+
+socket.on('food_ready', (data) => {
+  const { user, showNotification } = useStore.getState();
+  if (user && user.role === 'WAITER') {
+    const assigned = user.assignedTables?.split(',').map(s => s.trim()) || [];
+    const isAssigned = assigned.length === 0 || assigned.includes(data.tableId);
+    if (isAssigned) {
+      const message = `🍽️ Food ready for Table ${data.tableId}`;
+      showNotification(message, 'success');
+      // Persist to inbox
+      saveAlert({
+        id: data.orderId + '-' + Date.now(),
+        orderId: data.orderId,
+        tableId: data.tableId,
+        message,
+        timestamp: new Date().toISOString(),
+        read: false,
+      });
+      // Play sound
+      try {
+        const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+        audio.play().catch(() => {});
+      } catch (e) {}
+    }
+  } else if (user && user.role === 'ADMIN') {
+    showNotification(`🔔 Food Ready: Table ${data.tableId}`, 'info');
+  }
 });
 

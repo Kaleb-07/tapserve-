@@ -10,16 +10,33 @@ build/
 out/
 
 # ─── Environment Variables (SECURITY CRITICAL) ───────────────────
+# Never commit real .env files — use .env.example as the template
 .env
 .env.local
+.env.development
+.env.production
 .env.development.local
 .env.test.local
 .env.production.local
 .env.*.local
+api/.env
+dashboard/.env
+dashboard/src/.env
+
+# ─── Secrets & Keys ──────────────────────────────────────────────
+*.pem
+*.key
+*.p12
+*.pfx
+*.cert
+*.crt
+secrets/
+private/
 
 # ─── Prisma Generated ────────────────────────────────────────────
-# Keep schema.prisma but ignore generated client if needed
-# api/prisma/migrations/ is safe to commit for schema history
+# schema.prisma and migrations are safe to commit for schema history
+# Ignore generated client binary (platform-specific)
+api/node_modules/.prisma/
 
 # ─── Uploaded Files (User Content) ──────────────────────────────
 api/uploads/*
@@ -32,10 +49,14 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+lerna-debug.log*
 
 # ─── OS & Editor ─────────────────────────────────────────────────
 .DS_Store
+.DS_Store?
 Thumbs.db
+ehthumbs.db
+Desktop.ini
 *.suo
 *.ntvs*
 *.njsproj
@@ -44,10 +65,31 @@ Thumbs.db
 .vscode/*
 !.vscode/extensions.json
 .idea/
+*.iml
 
 # ─── TypeScript ──────────────────────────────────────────────────
 *.tsbuildinfo
+*.d.ts.map
 
-# ─── Misc ────────────────────────────────────────────────────────
-*.local
+# ─── Debug / Temporary Scripts ───────────────────────────────────
+# These should never be committed to version control
+debug_*.js
+fix_*.js
+test_*.js
 test.txt
+tmp/
+temp/
+*.tmp
+*.bak
+*.backup
+scratch.*
+
+# ─── Package Manager ─────────────────────────────────────────────
+# Uncomment the one you don't use:
+# package-lock.json  # (keep if using npm)
+# yarn.lock          # (keep if using yarn)
+
+# ─── Runtime ─────────────────────────────────────────────────────
+.cache/
+.parcel-cache/
+*.local

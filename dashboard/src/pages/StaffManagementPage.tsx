@@ -4,42 +4,75 @@ import { Users, Plus, Edit, Trash2, X } from 'lucide-react';
 import { useStore } from '../store/useStore';
 
 export const StaffManagementPage: React.FC = () => {
-  const { users, fetchUsers, addUser, updateUser, deleteUser, user: currentUser, showNotification, showConfirm } = useStore();
+  const { 
+    users, fetchUsers, addUser, updateUser, deleteUser, 
+    user: currentUser, showNotification, showConfirm,
+    sources, fetchSources 
+  } = useStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<any>(null);
   
+  useEffect(() => {
+    fetchUsers();
+    fetchSources();
+  }, [fetchUsers, fetchSources]);
+
   const [formData, setFormData] = useState({
     username: '',
     name: '',
     password: '',
-    role: 'WAITER'
+    role: 'WAITER',
+    assignedTables: [] as string[]
   });
-
-  useEffect(() => {
-    fetchUsers();
-  }, [fetchUsers]);
 
   const handleOpenModal = (user: any = null) => {
     if (user) {
       setEditingUser(user);
-      setFormData({ username: user.username, name: user.name || '', password: '', role: user.role });
+      const assigned = user.assignedTables ? user.assignedTables.split(',').map((s: string) => s.trim()) : [];
+      setFormData({ 
+        username: user.username, 
+        name: user.name || '', 
+        password: '', 
+        role: user.role,
+        assignedTables: assigned 
+      });
     } else {
       setEditingUser(null);
-      setFormData({ username: '', name: '', password: '', role: 'WAITER' });
+      setFormData({ username: '', name: '', password: '', role: 'WAITER', assignedTables: [] });
     }
     setIsModalOpen(true);
+  };
+
+  const toggleTable = (id: string) => {
+    setFormData(prev => {
+      const current = prev.assignedTables;
+      if (current.includes(id)) {
+        return { ...prev, assignedTables: current.filter(t => t !== id) };
+      } else {
+        return { ...prev, assignedTables: [...current, id] };
+      }
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      const submitData = {
+        ...formData,
+        assignedTables: formData.assignedTables.join(',')
+      };
+
       if (editingUser) {
         // Exclude the username to prevent changing it unecessarily or let the API handle it if not allowed.
-        const updateData: any = { name: formData.name, role: formData.role };
+        const updateData: any = { 
+          name: submitData.name, 
+          role: submitData.role,
+          assignedTables: submitData.assignedTables
+        };
         if (formData.password) updateData.password = formData.password;
         await updateUser(editingUser.id, updateData);
       } else {
-        await addUser(formData);
+        await addUser(submitData);
       }
       setIsModalOpen(false);
       showNotification(editingUser ? 'Staff updated' : 'Staff created', 'success');
@@ -103,10 +136,19 @@ export const StaffManagementPage: React.FC = () => {
             <h3 className="text-xl font-bold font-serif text-luxury-text">{u.name || u.username}</h3>
             <p className="text-sm text-luxury-textDim mt-1">@{u.username}</p>
             
-            <div className="mt-4 inline-block px-3 py-1 rounded-full border border-luxury-gold/30 bg-luxury-gold/5 w-max">
-              <p className="text-[10px] uppercase tracking-widest font-bold text-luxury-gold">
-                {u.role}
-              </p>
+            <div className="flex flex-wrap gap-2 mt-4">
+              <div className="px-3 py-1 rounded-full border border-luxury-gold/30 bg-luxury-gold/5 w-max">
+                <p className="text-[10px] uppercase tracking-widest font-bold text-luxury-gold">
+                  {u.role}
+                </p>
+              </div>
+              {u.role === 'WAITER' && u.assignedTables && (
+                <div className="px-3 py-1 rounded-full border border-luxury-border bg-white/5 w-max">
+                  <p className="text-[10px] uppercase tracking-widest font-bold text-luxury-textDim">
+                    Tables: {u.assignedTables}
+                  </p>
+                </div>
+              )}
             </div>
           </motion.div>
         ))}
@@ -120,7 +162,7 @@ export const StaffManagementPage: React.FC = () => {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="w-full max-w-md bg-luxury-dark border border-luxury-border rounded-[2rem] overflow-hidden shadow-2xl"
+              className="w-full max-w-lg bg-luxury-dark border border-luxury-border rounded-[2rem] overflow-hidden shadow-2xl"
             >
               <div className="px-6 py-6 border-b border-luxury-border flex justify-between items-center bg-luxury-gray/10">
                 <h2 className="text-2xl font-serif font-bold text-luxury-text">
@@ -131,17 +173,32 @@ export const StaffManagementPage: React.FC = () => {
                 </button>
               </div>
               
-              <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                <div>
-                  <label className="block text-xs uppercase tracking-widest text-luxury-textDim mb-2">Username</label>
-                  <input
-                    required
-                    disabled={!!editingUser}
-                    type="text"
-                    value={formData.username}
-                    onChange={e => setFormData({ ...formData, username: e.target.value })}
-                    className="w-full bg-luxury-black border border-luxury-border rounded-xl px-4 py-3 text-sm focus:border-luxury-gold outline-none text-luxury-text disabled:opacity-50"
-                  />
+              <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[70vh] overflow-y-auto custom-scrollbar">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs uppercase tracking-widest text-luxury-textDim mb-2">Username</label>
+                    <input
+                      required
+                      disabled={!!editingUser}
+                      type="text"
+                      value={formData.username}
+                      onChange={e => setFormData({ ...formData, username: e.target.value })}
+                      className="w-full bg-luxury-black border border-luxury-border rounded-xl px-4 py-3 text-sm focus:border-luxury-gold outline-none text-luxury-text disabled:opacity-50"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-xs uppercase tracking-widest text-luxury-textDim mb-2">Role</label>
+                    <select
+                      value={formData.role}
+                      onChange={e => setFormData({ ...formData, role: e.target.value as any })}
+                      className="w-full bg-luxury-black border border-luxury-border rounded-xl px-4 py-3 text-sm focus:border-luxury-gold outline-none text-luxury-text appearance-none"
+                    >
+                      <option value="ADMIN">ADMIN</option>
+                      <option value="WAITER">WAITER</option>
+                      <option value="CHEF">CHEF</option>
+                    </select>
+                  </div>
                 </div>
                 
                 <div>
@@ -156,7 +213,7 @@ export const StaffManagementPage: React.FC = () => {
                 
                 <div>
                   <label className="block text-xs uppercase tracking-widest text-luxury-textDim mb-2">
-                    {editingUser ? 'New Password (leave empty to keep current)' : 'Password'}
+                    {editingUser ? 'New Password (optional)' : 'Password'}
                   </label>
                   <input
                     required={!editingUser}
@@ -166,30 +223,43 @@ export const StaffManagementPage: React.FC = () => {
                     className="w-full bg-luxury-black border border-luxury-border rounded-xl px-4 py-3 text-sm focus:border-luxury-gold outline-none text-luxury-text"
                   />
                 </div>
-                
-                <div>
-                  <label className="block text-xs uppercase tracking-widest text-luxury-textDim mb-2">Role</label>
-                  <select
-                    value={formData.role}
-                    onChange={e => setFormData({ ...formData, role: e.target.value })}
-                    className="w-full bg-luxury-black border border-luxury-border rounded-xl px-4 py-3 text-sm focus:border-luxury-gold outline-none text-luxury-text appearance-none"
-                  >
-                    <option value="ADMIN">ADMIN</option>
-                    <option value="WAITER">WAITER</option>
-                    <option value="CHEF">CHEF</option>
-                  </select>
-                </div>
 
-                <div className="pt-6">
-                  <button
-                    type="submit"
-                    className="w-full py-4 rounded-xl font-bold uppercase tracking-[0.2em] text-black transition-all hover:scale-[1.02]"
-                    style={{ background: 'linear-gradient(135deg, #d4af37 0%, #f1d592 50%, #aa8d2e 100%)' }}
-                  >
-                    {editingUser ? 'Save Updates' : 'Create Staff'}
-                  </button>
-                </div>
+                {formData.role === 'WAITER' && (
+                  <div className="pt-2 animate-in fade-in duration-500">
+                    <label className="block text-xs uppercase tracking-widest text-luxury-textDim mb-3">Assigned Tables</label>
+                    <div className="grid grid-cols-4 gap-2">
+                      {sources.filter(s => s.type === 'Table').map(s => (
+                        <button
+                          key={s.id}
+                          type="button"
+                          onClick={() => toggleTable(s.identifier)}
+                          className={`py-2 px-1 rounded-lg border text-[10px] font-bold transition-all ${
+                            formData.assignedTables.includes(s.identifier)
+                              ? 'bg-luxury-gold/20 border-luxury-gold text-luxury-gold'
+                              : 'bg-luxury-black border-luxury-border text-luxury-textDim'
+                          }`}
+                        >
+                          T-{s.identifier}
+                        </button>
+                      ))}
+                      {sources.filter(s => s.type === 'Table').length === 0 && (
+                        <p className="col-span-4 text-[10px] text-red-400">No tables found. Create some in Settings first.</p>
+                      )}
+                    </div>
+                  </div>
+                )}
               </form>
+
+              <div className="p-6 bg-luxury-gray/10 border-t border-luxury-border">
+                <button
+                  onClick={handleSubmit}
+                  type="button"
+                  className="w-full py-4 rounded-xl font-bold uppercase tracking-[0.2em] text-black transition-all hover:scale-[1.02] shadow-xl"
+                  style={{ background: 'linear-gradient(135deg, #d4af37 0%, #f1d592 50%, #aa8d2e 100%)' }}
+                >
+                  {editingUser ? 'Save Updates' : 'Create Staff'}
+                </button>
+              </div>
             </motion.div>
           </div>
         )}

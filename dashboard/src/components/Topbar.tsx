@@ -1,8 +1,12 @@
+import React from 'react';
 import { Search, User, Menu, Sun, Moon } from 'lucide-react';
 import { useStore } from '../store/useStore';
+import { WaiterAlertInbox } from './WaiterAlertInbox';
 
 export const Topbar: React.FC<{ title: string; onToggleSidebar: () => void }> = ({ title, onToggleSidebar }) => {
   const { user, theme, toggleTheme, searchQuery, setSearchQuery } = useStore();
+  const isWaiter = user?.role === 'WAITER';
+
   return (
     <div className="h-20 bg-luxury-black border-b border-luxury-border flex items-center justify-between px-4 md:px-8 sticky top-0 z-10">
       <div className="flex items-center space-x-4">
@@ -15,7 +19,7 @@ export const Topbar: React.FC<{ title: string; onToggleSidebar: () => void }> = 
         <h2 className="text-xl font-medium text-luxury-text">{title}</h2>
       </div>
 
-      <div className="flex items-center space-x-6">
+      <div className="flex items-center space-x-4">
         <div className="relative group">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-luxury-textDim group-focus-within:text-luxury-gold transition-colors" size={18} />
           <input 
@@ -27,7 +31,8 @@ export const Topbar: React.FC<{ title: string; onToggleSidebar: () => void }> = 
           />
         </div>
 
-
+        {/* Waiter Alert Inbox — only shown to WAITERs */}
+        {isWaiter && <WaiterAlertInbox />}
 
         <button 
           onClick={toggleTheme}
@@ -44,8 +49,8 @@ export const Topbar: React.FC<{ title: string; onToggleSidebar: () => void }> = 
             <User size={20} className="text-luxury-gold" />
           </div>
           <div className="text-left hidden md:block">
-            <p className="text-sm font-medium text-luxury-text">{user?.name || 'Admin User'}</p>
-            <p className="text-[10px] text-luxury-textDim uppercase tracking-tighter">Chief Manager</p>
+            <p className="text-sm font-medium text-luxury-text">{user?.name || user?.username || 'Staff'}</p>
+            <p className="text-[10px] text-luxury-textDim uppercase tracking-tighter">{user?.role}</p>
           </div>
         </div>
       </div>

@@ -1,0 +1,29 @@
+# ─── Dependencies ────────────────────────────────────────────────
+node_modules/
+
+# ─── Environment Variables (SECURITY CRITICAL) ───────────────────
+.env
+.env.local
+.env.development
+.env.production
+.env.*.local
+
+# ─── Uploads (user-generated content) ────────────────────────────
+uploads/*
+!uploads/.gitkeep
+
+# ─── Logs ────────────────────────────────────────────────────────
+logs/
+*.log
+npm-debug.log*
+
+# ─── Debug / Temporary Scripts ───────────────────────────────────
+debug_*.js
+fix_*.js
+test_*.js
+*.tmp
+*.bak
+
+# ─── OS ──────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
