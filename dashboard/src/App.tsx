@@ -15,9 +15,11 @@ import { ReportsPage } from './pages/ReportsPage';
 import { useStore } from './store/useStore';
 
 const App: React.FC = () => {
-  const { token, checkAuth, initTheme, isSidebarCollapsed, fetchSettings } = useStore();
-  const [activeTab, setActiveTab] = React.useState('dashboard');
+  const { token, user, checkAuth, initTheme, isSidebarCollapsed, fetchSettings } = useStore();
+
+  const [activeTab, setActiveTab] = React.useState('orders'); // corrected by role in effect below
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
+
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
@@ -27,32 +29,50 @@ const App: React.FC = () => {
     fetchSettings();
   }, [checkAuth, initTheme, fetchSettings]);
 
+  // Set correct initial tab once user is known
+  React.useEffect(() => {
+    if (user) {
+      setActiveTab(user.role === 'WAITER' ? 'orders' : 'dashboard');
+    }
+  }, [user?.role]);
+
   if (!token) {
     return <LoginPage />;
   }
 
+  const isWaiter = user?.role === 'WAITER';
+  const isAdmin = user?.role === 'ADMIN';
+
   const renderContent = () => {
     switch (activeTab) {
       case 'dashboard':
+        // Guard: waiters cannot see dashboard
+        if (isWaiter) return <OrdersPage />;
         return <DashboardPage onSetTab={setActiveTab} />;
       case 'orders':
         return <OrdersPage />;
       case 'menu':
+        // Guard: waiters cannot see menu
+        if (isWaiter) return <OrdersPage />;
         return <MenuPage />;
       case 'payments':
         return <PaymentPage />;
       case 'staff':
+        if (!isAdmin) return <OrdersPage />;
         return <StaffManagementPage />;
       case 'reports':
+        if (!isAdmin) return <OrdersPage />;
         return <ReportsPage />;
       case 'settings':
+        if (!isAdmin) return <OrdersPage />;
         return <SettingsPage />;
       case 'profile':
         return <ProfilePage />;
       default:
-        return <DashboardPage />;
+        return isWaiter ? <OrdersPage /> : <DashboardPage />;
     }
   };
+
 
   return (
     <div className="flex min-h-screen bg-luxury-black font-sans text-luxury-text overflow-x-hidden">

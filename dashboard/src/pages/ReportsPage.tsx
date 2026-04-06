@@ -50,7 +50,7 @@ export const ReportsPage: React.FC = () => {
     fetchItems();
   }, [fetchCategories, fetchItems]);
 
-  const restaurantName = settings?.restaurantName || 'Our Restaurant';
+  const restaurantName = settings?.hotelName || 'NORA LUXE';
 
   const currentSelectionValue = 
     timeRange === 'daily' ? dateSelection 
