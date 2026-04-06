@@ -60,7 +60,7 @@ export const SettingsPage: React.FC = () => {
     document.body.removeChild(downloadLink);
   };
 
-  const qrValue = `${window.location.origin}/customer.html?type=${qrType}&id=${qrId}`;
+  const qrValue = `${window.location.origin}/?type=${qrType}&id=${qrId}`;
 
   return (
     <div className="p-8 max-w-4xl mx-auto space-y-8">
