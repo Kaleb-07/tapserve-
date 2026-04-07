@@ -7,7 +7,8 @@ import {
   Download,
   Plus,
   Trash2,
-  MapPin
+  MapPin,
+  Upload
 } from 'lucide-react';
 import { QRCodeCanvas } from 'qrcode.react';
 import { useStore } from '../store/useStore';
@@ -17,6 +18,7 @@ export const SettingsPage: React.FC = () => {
   const [hotelName, setHotelName] = useState('NORA LUXE');
   const [currency, setCurrency] = useState('USD');
   const [supportEmail, setSupportEmail] = useState('');
+  const [faviconUrl, setFaviconUrl] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   
   // New Source State
@@ -37,13 +39,14 @@ export const SettingsPage: React.FC = () => {
       setHotelName(settings.hotelName || 'NORA LUXE');
       setCurrency(settings.currency || 'USD');
       setSupportEmail(settings.supportEmail || '');
+      setFaviconUrl(settings.faviconUrl || '');
     }
   }, [settings]);
 
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      await updateSettings({ hotelName, currency, supportEmail });
+      await updateSettings({ hotelName, currency, supportEmail, faviconUrl });
       showNotification('Settings saved successfully', 'success');
     } catch (err: any) {
       const msg = err.response?.data?.error || err.message || 'Unknown error';
@@ -134,6 +137,38 @@ export const SettingsPage: React.FC = () => {
                   placeholder="concierge@nora-resort.com" 
                   className="w-full bg-luxury-black border border-luxury-border rounded-lg px-4 py-3 text-sm focus:border-luxury-gold outline-none text-luxury-text" 
                 />
+              </div>
+              <div>
+                <label className="text-[10px] text-luxury-textDim uppercase tracking-widest font-bold mb-2 block">Favicon</label>
+                <div className="flex items-center gap-3 mb-2">
+                  {faviconUrl && (
+                    <img src={faviconUrl} alt="favicon preview" className="w-8 h-8 rounded object-contain border border-luxury-border bg-luxury-gray/20 flex-shrink-0" />
+                  )}
+                  <input 
+                    type="url" 
+                    value={faviconUrl}
+                    onChange={(e) => setFaviconUrl(e.target.value)}
+                    placeholder="https://yourdomain.com/favicon.png" 
+                    className="flex-1 bg-luxury-black border border-luxury-border rounded-lg px-4 py-3 text-sm focus:border-luxury-gold outline-none text-luxury-text" 
+                  />
+                </div>
+                <label className="flex items-center gap-2 cursor-pointer w-max px-4 py-2 rounded-lg border border-luxury-border bg-luxury-gray/10 hover:bg-luxury-gold/10 hover:border-luxury-gold/30 transition-all text-[10px] font-bold uppercase tracking-widest text-luxury-textDim hover:text-luxury-gold">
+                  <Upload size={13} />
+                  Upload File
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      const reader = new FileReader();
+                      reader.onloadend = () => setFaviconUrl(reader.result as string);
+                      reader.readAsDataURL(file);
+                    }}
+                  />
+                </label>
+                <p className="text-[9px] text-luxury-textDim mt-2">Paste a URL or upload an image file. Updates the browser tab icon on save.</p>
               </div>
             </div>
           </div>

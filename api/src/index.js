@@ -120,13 +120,13 @@ app.post('/api/auth/login', async (req, res) => {
 // 0.5. Staff/Users
 app.get('/api/users', authMiddleware, adminOnly, async (req, res) => {
   const users = await prisma.user.findMany({ 
-    select: { id: true, username: true, name: true, role: true, assignedTables: true, createdAt: true } 
+    select: { id: true, username: true, name: true, role: true, createdAt: true } 
   });
   res.json(users);
 });
 
 app.post('/api/users', authMiddleware, adminOnly, async (req, res) => {
-  const { username, password, name, role, assignedTables } = req.body;
+  const { username, password, name, role } = req.body;
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = await prisma.user.create({
@@ -135,9 +135,8 @@ app.post('/api/users', authMiddleware, adminOnly, async (req, res) => {
         password: hashedPassword, 
         name, 
         role: role || 'WAITER',
-        assignedTables: assignedTables || ''
       },
-      select: { id: true, username: true, name: true, role: true, assignedTables: true }
+      select: { id: true, username: true, name: true, role: true }
     });
     res.json(user);
   } catch (err) {
@@ -152,15 +151,14 @@ app.patch('/api/users/:id', authMiddleware, async (req, res) => {
     return res.status(403).json({ error: 'Forbidden' });
   }
 
-  const { name, role, password, assignedTables } = req.body;
+  const { name, role, password } = req.body;
   try {
     const updateData = {};
     if (name !== undefined) updateData.name = name;
     
-    // Only ADMIN can change roles and assignments
+    // Only ADMIN can change roles
     if (req.user?.role === 'ADMIN') {
       if (role !== undefined) updateData.role = role;
-      if (assignedTables !== undefined) updateData.assignedTables = assignedTables;
     }
 
     if (password) {
@@ -169,7 +167,7 @@ app.patch('/api/users/:id', authMiddleware, async (req, res) => {
     const user = await prisma.user.update({
       where: { id: req.params.id },
       data: updateData,
-      select: { id: true, username: true, name: true, role: true, assignedTables: true }
+      select: { id: true, username: true, name: true, role: true }
     });
     res.json(user);
   } catch (err) {
@@ -385,20 +383,6 @@ app.delete('/api/items/:id', authMiddleware, async (req, res) => {
 app.get('/api/orders', authMiddleware, async (req, res) => {
   try {
     let where = {};
-    
-    // Filter by assigned tables if the user is a WAITER
-    if (req.user?.role === 'WAITER') {
-      const user = await prisma.user.findUnique({ where: { id: req.user.id } });
-      if (user?.assignedTables) {
-        const tableIds = user.assignedTables.split(',').map(s => s.trim()).filter(Boolean);
-        console.log('DEBUG [Orders]: Waiter assigned tables:', tableIds);
-        where.sourceType = 'Table';
-        where.sourceId = { in: tableIds };
-      } else {
-        console.log('DEBUG [Orders]: Waiter has no assigned tables');
-        where.sourceId = 'NONE-ASSIGNED'; 
-      }
-    }
 
     const orders = await prisma.order.findMany({
       where,
@@ -590,16 +574,16 @@ app.get('/api/settings', async (req, res) => {
 });
 
 app.patch('/api/settings', authMiddleware, async (req, res) => {
-  const { hotelName, currency, supportEmail } = req.body;
+  const { hotelName, currency, supportEmail, faviconUrl } = req.body;
   try {
     const settings = await prisma.settings.findFirst();
     let updated;
     if (!settings) {
-      updated = await prisma.settings.create({ data: { hotelName, currency, supportEmail } });
+      updated = await prisma.settings.create({ data: { hotelName, currency, supportEmail, faviconUrl } });
     } else {
       updated = await prisma.settings.update({
         where: { id: settings.id },
-        data: { hotelName, currency, supportEmail }
+        data: { hotelName, currency, supportEmail, faviconUrl }
       });
     }
     io.emit('settings_updated', updated);
