@@ -87,5 +87,6 @@ model Settings {
   hotelName    String   @default("Nora Luxe")
   currency     String   @default("USD")
   supportEmail String?
+  faviconUrl   String?  @db.LongText
   updatedAt    DateTime @updatedAt
 }

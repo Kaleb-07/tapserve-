@@ -199,7 +199,7 @@ export const CustomerOrderPage: React.FC = () => {
       <header className={`sticky top-0 z-30 border-b ${t.header} shadow-sm`}>
 
         {/* 1. Greeting + Restaurant name */}
-        <div className="relative flex items-center justify-center py-4 px-4">
+        <div className="relative flex items-center justify-center py-3 px-4">
           <div className="text-center">
             <p className="text-xs italic text-[#d4af37] font-medium">{getGreeting(activeMealType)}</p>
             <h1 className={`text-xl font-extrabold tracking-wide font-serif uppercase ${t.text}`}>{restaurantName}</h1>
@@ -227,9 +227,13 @@ export const CustomerOrderPage: React.FC = () => {
         </div>
 
         {/* 3. Category pills */}
-        <div className="px-4 pb-3 pt-3">
-          <p className={`text-[9px] font-bold uppercase tracking-[0.2em] mb-2 ${t.muted}`}>Categories</p>
-          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+        <div className="px-4 pb-2 pt-2">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="h-px flex-1 bg-gradient-to-r from-transparent via-[#d4af37]/60 to-[#d4af37]" />
+            <span className="text-[12px] font-black font-serif tracking-[0.4em] text-[#d4af37] uppercase">Categories</span>
+            <div className="h-px flex-1 bg-gradient-to-l from-transparent via-[#d4af37]/60 to-[#d4af37]" />
+          </div>
+          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide max-w-7xl mx-auto">
             <button onClick={() => setActiveCategory('all')}
               className={`flex-shrink-0 flex flex-col items-center gap-1 px-4 py-2 rounded-xl border text-xs font-bold uppercase tracking-wider transition-all ${activeCategory === 'all' ? t.pillOn : t.pillOff}`}>
               <UtensilsCrossed size={18} />
@@ -246,8 +250,8 @@ export const CustomerOrderPage: React.FC = () => {
         </div>
 
         {/* 4. Search */}
-        <div className="px-4 pb-3">
-          <div className="relative">
+        <div className="px-4 pb-2">
+          <div className="relative max-w-2xl mx-auto">
             <Search size={14} className={`absolute left-3 top-1/2 -translate-y-1/2 ${t.iconMuted}`} />
             <input type="text" placeholder="Search dishes..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)}
               className={`w-full rounded-full pl-9 pr-4 py-2.5 text-sm border focus:outline-none focus:border-[#d4af37] transition-all ${t.input}`} />
@@ -256,10 +260,13 @@ export const CustomerOrderPage: React.FC = () => {
       </header>
 
       {/* ── MENU ITEMS ── */}
-      <main className="px-4 py-4 pb-32">
+      <main className="px-4 py-3 pb-28 max-w-7xl mx-auto">
         {/* Title + grid/list toggle */}
-        <div className="flex items-center justify-between mb-4 max-w-4xl mx-auto">
-          <h2 className={`text-lg font-bold font-serif ${t.text}`}>{searchTerm ? 'Search Results' : currentCatName}</h2>
+        <div className="flex items-center justify-between mb-3 max-w-4xl mx-auto">
+          <div className="flex items-center gap-3">
+            <div className="w-0.5 h-5 bg-[#d4af37] rounded-full" />
+            <h2 className={`text-base font-serif tracking-[0.12em] uppercase ${t.text}`}>{searchTerm ? 'Search Results' : currentCatName}</h2>
+          </div>
           <div className={`flex items-center gap-1 rounded-full border px-1 py-1 ${t.border}`}>
             <button onClick={() => setGridView(false)}
               className={`p-1.5 rounded-full transition-all ${!gridView ? 'bg-[#d4af37] text-black' : t.muted}`}>
@@ -287,25 +294,25 @@ export const CustomerOrderPage: React.FC = () => {
             <p className="text-sm font-bold uppercase tracking-widest opacity-40">No items found</p>
           </div>
         ) : gridView ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 max-w-7xl mx-auto">
             {items.map((item: any, idx: number) => {
               const cartQty = cart.filter(c => c.id === item.id).reduce((s, c) => s + c.quantity, 0);
               const images = getItemImages(item.image);
               return (
                 <motion.div key={item.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3, delay: idx * 0.05 }}
-                  className={`group flex flex-col rounded-3xl border overflow-hidden shadow-md transition-shadow hover:shadow-xl ${t.card}`}>
+                  className={`group flex flex-col rounded-2xl border overflow-hidden shadow-md transition-shadow hover:shadow-xl ${t.card}`}>
                   <ImageCarousel images={images} t={t} height="h-64" />
                   <div className="p-5 flex flex-col flex-1">
-                    <div className="flex items-start justify-between gap-4 mb-2">
-                       <h3 className={`font-bold text-xl font-serif leading-tight ${t.text}`}>{item.name}</h3>
-                       <p className="text-[#d4af37] font-extrabold text-lg flex-shrink-0">${item.price.toFixed(2)}</p>
+                    <div className="flex items-start justify-between gap-2 mb-1.5">
+                       <h3 className={`font-bold text-base font-serif leading-tight ${t.text}`}>{item.name}</h3>
+                       <p className="text-[#d4af37] font-extrabold text-base flex-shrink-0">${item.price.toFixed(2)}</p>
                     </div>
-                    {item.description && <p className={`text-sm mt-1 line-clamp-3 min-h-[3rem] ${t.muted}`}>{item.description}</p>}
+                    {item.description && <p className={`text-xs mt-1 line-clamp-2 ${t.muted}`}>{item.description}</p>}
                     <button onClick={() => item.ingredients ? openCustomizer(item) : addToCart(item)}
-                      className="mt-6 w-full py-4 rounded-2xl bg-[#d4af37] text-black text-xs font-bold uppercase tracking-[0.2em] flex items-center justify-center gap-2 hover:bg-[#f1d592] transition-all shadow-lg shadow-[#d4af37]/20 active:scale-95 border-b-2 border-black/10">
-                      <Plus size={16} />
-                      ADD {cartQty > 0 && <span className="bg-black/10 px-2 py-0.5 rounded-lg ml-1">({cartQty} item{cartQty > 1 ? 's' : ''})</span>}
+                      className="mt-4 w-full py-3 rounded-xl bg-[#d4af37] text-black text-xs font-bold uppercase tracking-[0.2em] flex items-center justify-center gap-2 hover:bg-[#f1d592] transition-all shadow-md shadow-[#d4af37]/20 active:scale-95 border-b-2 border-black/10">
+                      <Plus size={14} />
+                      ADD {cartQty > 0 && <span className="bg-black/10 px-2 py-0.5 rounded-lg ml-1">({cartQty})</span>}
                     </button>
                   </div>
                 </motion.div>
@@ -320,19 +327,19 @@ export const CustomerOrderPage: React.FC = () => {
               return (
                 <motion.div key={item.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.2, delay: idx * 0.03 }}
-                  className={`group flex items-center gap-4 p-4 rounded-3xl border shadow-sm ${t.card}`}>
-                  <div className="w-40 h-40 flex-shrink-0">
-                    <ImageCarousel images={images} t={t} height="h-full" rounded="rounded-2xl" />
+                  className={`group flex items-center gap-3 p-3 rounded-2xl border shadow-sm ${t.card}`}>
+                  <div className="w-28 h-28 flex-shrink-0">
+                    <ImageCarousel images={images} t={t} height="h-full" rounded="rounded-xl" />
                   </div>
                   <div className="flex-1 min-w-0 pl-1">
                     <div className="flex items-start justify-between">
-                      <h3 className={`font-bold text-lg font-serif ${t.text} truncate`}>{item.name}</h3>
-                      <p className="text-[#d4af37] font-extrabold text-base ml-2">${item.price.toFixed(2)}</p>
+                      <h3 className={`font-bold text-base font-serif ${t.text} truncate`}>{item.name}</h3>
+                      <p className="text-[#d4af37] font-extrabold text-sm ml-2">${item.price.toFixed(2)}</p>
                     </div>
-                    {item.description && <p className={`text-sm line-clamp-3 mt-2 ${t.muted}`}>{item.description}</p>}
+                    {item.description && <p className={`text-xs line-clamp-2 mt-1 ${t.muted}`}>{item.description}</p>}
                     <button onClick={() => item.ingredients ? openCustomizer(item) : addToCart(item)}
-                      className="mt-4 px-6 py-2.5 rounded-xl bg-[#d4af37] text-black text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-[#f1d592] transition-all shadow-md active:scale-95 border-b-2 border-black/10">
-                      <Plus size={14} />
+                      className="mt-3 px-5 py-2 rounded-xl bg-[#d4af37] text-black text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-[#f1d592] transition-all shadow-md active:scale-95 border-b-2 border-black/10">
+                      <Plus size={12} />
                       <span>ADD</span>
                       {cartQty > 0 && <span className="bg-black/10 px-2 py-0.5 rounded-md ml-1">({cartQty})</span>}
                     </button>

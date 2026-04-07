@@ -13,9 +13,11 @@ import { Toast } from './components/Toast';
 import { ConfirmModal } from './components/ConfirmModal';
 import { ReportsPage } from './pages/ReportsPage';
 import { useStore } from './store/useStore';
+import { useDocumentMeta } from './hooks/useDocumentMeta';
 
 const App: React.FC = () => {
   const { token, user, checkAuth, initTheme, isSidebarCollapsed, fetchSettings } = useStore();
+  useDocumentMeta();
 
   const [activeTab, setActiveTab] = React.useState('orders'); // corrected by role in effect below
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);

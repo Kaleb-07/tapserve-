@@ -630,7 +630,7 @@ export const ReportsPage: React.FC = () => {
         {/* Source Distribution Visualization */}
         <div className="xl:col-span-1 glass-card p-8 rounded-[2.5rem] border border-luxury-border flex flex-col">
           <div className="flex items-center justify-between mb-8">
-            <h3 className="text-lg font-serif font-bold text-white uppercase tracking-widest text-sm">Order Distribution</h3>
+            <h3 className="text-lg font-serif font-bold text-luxury-text uppercase tracking-widest text-sm">Order Distribution</h3>
             <MapPin size={18} className="text-luxury-gold opacity-50" />
           </div>
 
@@ -673,7 +673,7 @@ export const ReportsPage: React.FC = () => {
         <div className="xl:col-span-2 glass-card p-8 rounded-[2.5rem] border border-luxury-border">
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h3 className="text-lg font-serif font-bold text-white uppercase tracking-widest text-sm">Revenue Flux</h3>
+              <h3 className="text-lg font-serif font-bold text-luxury-text uppercase tracking-widest text-sm">Revenue Flux</h3>
               <p className="text-[10px] text-luxury-textDim mt-1 uppercase tracking-widest">Latest transaction details</p>
             </div>
             <button
@@ -714,7 +714,7 @@ export const ReportsPage: React.FC = () => {
                         {order.status}
                       </span>
                     </td>
-                    <td className="py-4 text-right font-serif font-bold text-white italic">
+                    <td className="py-4 text-right font-serif font-bold text-luxury-text italic">
                       ${order.totalPrice.toFixed(2)}
                     </td>
                   </tr>
@@ -753,7 +753,7 @@ export const ReportsPage: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: i * 0.1 }}
               whileHover={{ y: -5 }}
-              className={`relative overflow-hidden bg-luxury-dark border border-luxury-border rounded-[2rem] p-6 flex flex-col shadow-lg hover:shadow-luxury-gold/10 transition-all duration-300`}
+              className={`relative overflow-hidden card-luxury rounded-[2rem] p-6 flex flex-col shadow-lg hover:shadow-luxury-gold/10 transition-all duration-300`}
             >
               {/* Gradient overlay */}
               <div className={`absolute inset-0 bg-gradient-to-br ${card.gradient} pointer-events-none`} />
@@ -774,7 +774,7 @@ export const ReportsPage: React.FC = () => {
 
                 {card.id !== 'menu' && (
                   <div className="flex flex-col gap-2 mb-4 mt-auto">
-                    <div className="flex items-center gap-1 bg-black/40 p-1 rounded-xl border border-luxury-border/30 w-full">
+                    <div className="flex items-center gap-1 bg-luxury-gray/20 p-1 rounded-xl border border-luxury-border w-full">
                       {(['daily', 'weekly', 'monthly'] as const).map(range => (
                         <button
                           key={`${card.id}-${range}`}
@@ -789,7 +789,7 @@ export const ReportsPage: React.FC = () => {
                         </button>
                       ))}
                     </div>
-                    <div className="bg-black/40 rounded-xl border border-luxury-border/30 px-3 py-2 flex items-center justify-between">
+                    <div className="bg-luxury-gray/20 rounded-xl border border-luxury-border px-3 py-2 flex items-center justify-between">
                        <span className="text-[10px] text-luxury-textDim uppercase font-bold tracking-widest">Select:</span>
                        {timeRange === 'daily' && (
                          <input type="date" value={dateSelection} onChange={(e) => setDateSelection(e.target.value)} className="bg-transparent text-luxury-gold text-xs font-mono outline-none cursor-pointer w-[120px]" />
@@ -838,8 +838,14 @@ export const ReportsPage: React.FC = () => {
           animation: spin-slow 8s linear infinite;
         }
         .glass-card {
-          background: linear-gradient(180deg, rgba(20,20,20,0.4) 0%, rgba(10,10,10,0.6) 100%);
+          background: var(--glass-card-bg, linear-gradient(180deg, rgba(20,20,20,0.4) 0%, rgba(10,10,10,0.6) 100%));
           backdrop-filter: blur(10px);
+        }
+        :root .dark .glass-card {
+          --glass-card-bg: linear-gradient(180deg, rgba(20,20,20,0.4) 0%, rgba(10,10,10,0.6) 100%);
+        }
+        :root:not(.dark) .glass-card {
+          --glass-card-bg: linear-gradient(180deg, rgba(255,255,255,0.8) 0%, rgba(245,245,245,0.9) 100%);
         }
       `}</style>
     </div>
@@ -849,7 +855,7 @@ export const ReportsPage: React.FC = () => {
 const MetricCard: React.FC<{ label: string, value: string, icon: React.ReactNode, trend: string, trendDir: 'up' | 'down' }> = ({ label, value, icon, trend, trendDir }) => (
   <motion.div
     whileHover={{ y: -5 }}
-    className="bg-luxury-dark border border-luxury-border p-6 rounded-[2rem] flex flex-col justify-between h-full shadow-lg hover:shadow-luxury-gold/10 transition-all duration-300 pointer-events-auto"
+    className="card-luxury p-6 rounded-[2rem] flex flex-col justify-between h-full shadow-lg hover:shadow-luxury-gold/10 transition-all duration-300 pointer-events-auto"
   >
     <div className="flex justify-between items-start mb-4">
       <div className="p-3 bg-luxury-gold/5 border border-luxury-gold/10 rounded-2xl">
@@ -863,7 +869,7 @@ const MetricCard: React.FC<{ label: string, value: string, icon: React.ReactNode
 
     <div>
       <p className="text-[10px] text-luxury-textDim uppercase tracking-[0.2rem] font-bold mb-1 opacity-70">{label}</p>
-      <h3 className="text-3xl font-serif font-bold text-white tracking-tighter leading-tight italic">{value}</h3>
+      <h3 className="text-3xl font-serif font-bold text-luxury-text tracking-tighter leading-tight italic">{value}</h3>
     </div>
   </motion.div>
 );
