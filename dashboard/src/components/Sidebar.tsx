@@ -4,14 +4,19 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '../store/useStore';
 
 const getMenuItems = (role: string) => {
+  const isAdmin = role === 'ADMIN';
+  const isChef = role === 'CHEF';
+
   const items = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    // Dashboard: only for ADMIN and CHEF
+    ...(isAdmin || isChef ? [{ id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard }] : []),
     { id: 'orders', label: 'Orders', icon: ShoppingCart },
     { id: 'payments', label: 'Payments', icon: CreditCard },
-    { id: 'menu', label: 'Menu Items', icon: Utensils },
+    // Menu Items: only for ADMIN and CHEF
+    ...(isAdmin || isChef ? [{ id: 'menu', label: 'Menu Items', icon: Utensils }] : []),
   ];
   
-  if (role === 'ADMIN') {
+  if (isAdmin) {
     items.push({ id: 'reports', label: 'Financial Reports', icon: BarChart3 });
     items.push({ id: 'staff', label: 'Staff Management', icon: Users });
     items.push({ id: 'settings', label: 'Global Settings', icon: Settings });

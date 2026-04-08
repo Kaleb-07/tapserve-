@@ -362,7 +362,7 @@ export const MenuPage: React.FC = () => {
       {/* Item Modal */}
       {isItemModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-luxury-black/80 backdrop-blur-sm">
-          <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-luxury-black border border-luxury-border p-8 rounded-2xl w-full max-w-md shadow-2xl">
+          <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-luxury-dark border border-luxury-border p-8 rounded-2xl w-full max-w-md shadow-2xl">
             <h2 className="text-xl font-bold text-luxury-text mb-6 font-serif">{editingItem ? 'Edit' : 'Add'} Menu Item</h2>
             <form onSubmit={handleSaveItem} className="space-y-4">
               <div>
@@ -374,8 +374,7 @@ export const MenuPage: React.FC = () => {
                 <textarea name="description" defaultValue={editingItem?.description} className="w-full bg-luxury-gray/20 border border-luxury-border rounded-lg px-4 py-2 text-luxury-text outline-none focus:border-luxury-gold h-20" />
               </div>
               <div>
-                <label className="text-xs text-gray-500 uppercase tracking-widest font-bold mb-2 block">Ingredients</label>
-                {/* Tag chip input */}
+                <label className="text-xs text-luxury-textDim uppercase tracking-widest font-bold mb-2 block">Ingredients</label>
                 <div
                   onClick={() => ingredientInputRef.current?.focus()}
                   className="w-full min-h-[48px] bg-luxury-gray/20 border border-luxury-border rounded-lg px-3 py-2 flex flex-wrap gap-2 cursor-text focus-within:border-luxury-gold transition-all"
@@ -396,28 +395,28 @@ export const MenuPage: React.FC = () => {
                     onKeyDown={handleIngredientKeyDown}
                     onBlur={addIngredientTag}
                     placeholder={ingredientTags.length === 0 ? 'Type ingredient, press Enter or comma...' : ''}
-                    className="flex-1 min-w-[140px] bg-transparent text-white text-xs outline-none placeholder:text-gray-600"
+                    className="flex-1 min-w-[140px] bg-transparent text-luxury-text text-xs outline-none placeholder:text-luxury-textDim"
                   />
                 </div>
-                <p className="text-[9px] text-gray-700 mt-1 uppercase tracking-widest font-bold">Press Enter or , after each ingredient</p>
+                <p className="text-[9px] text-luxury-textDim mt-1 uppercase tracking-widest font-bold">Press Enter or , after each ingredient</p>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-xs text-gray-500 uppercase tracking-widest font-bold mb-1 block">Price ($)</label>
-                    <input name="price" type="number" step="0.01" defaultValue={editingItem?.price} required className="w-full bg-luxury-gray/20 border border-luxury-border rounded-lg px-4 py-2 text-white outline-none focus:border-luxury-gold" />
+                    <label className="text-xs text-luxury-textDim uppercase tracking-widest font-bold mb-1 block">Price ($)</label>
+                    <input name="price" type="number" step="0.01" defaultValue={editingItem?.price} required className="w-full bg-luxury-gray/20 border border-luxury-border rounded-lg px-4 py-2 text-luxury-text outline-none focus:border-luxury-gold" />
                   </div>
                   <div>
                     <label className="text-xs text-luxury-gold/50 uppercase tracking-widest font-bold mb-1 block">Cost ($)</label>
-                    <input name="costPrice" type="number" step="0.01" defaultValue={editingItem?.costPrice} className="w-full bg-luxury-gold/5 border border-luxury-gold/20 rounded-lg px-4 py-2 text-white outline-none focus:border-luxury-gold" />
+                    <input name="costPrice" type="number" step="0.01" defaultValue={editingItem?.costPrice} className="w-full bg-luxury-gold/5 border border-luxury-gold/20 rounded-lg px-4 py-2 text-luxury-text outline-none focus:border-luxury-gold" />
                   </div>
                 </div>
                 <div>
-                  <label className="text-xs text-gray-500 uppercase tracking-widest font-bold mb-1 block">Category</label>
-                  <select name="categoryId" defaultValue={editingItem?.categoryId} required className="w-full bg-luxury-gray/20 border border-luxury-border rounded-lg px-4 py-2 text-white outline-none focus:border-luxury-gold">
+                  <label className="text-xs text-luxury-textDim uppercase tracking-widest font-bold mb-1 block">Category</label>
+                  <select name="categoryId" defaultValue={editingItem?.categoryId} required className="w-full bg-luxury-gray/20 border border-luxury-border rounded-lg px-4 py-2 text-luxury-text outline-none focus:border-luxury-gold">
                     {categories
                       .filter(c => activeMealType === 'ALL' || c.mealType === activeMealType || c.mealType === 'ALL')
-                      .map(c => <option key={c.id} value={c.id} className="bg-luxury-black">{c.name}</option>)}
+                      .map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                   </select>
                 </div>
               </div>
@@ -505,25 +504,25 @@ export const MenuPage: React.FC = () => {
       {/* Category Modal */}
       {isCatModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-          <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-luxury-black border border-luxury-border p-8 rounded-2xl w-full max-w-sm shadow-2xl">
-            <h2 className="text-xl font-bold text-white mb-6 font-serif">{editingCat ? 'Edit' : 'Add'} Category</h2>
+          <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-luxury-dark border border-luxury-border p-8 rounded-2xl w-full max-w-sm shadow-2xl">
+            <h2 className="text-xl font-bold text-luxury-text mb-6 font-serif">{editingCat ? 'Edit' : 'Add'} Category</h2>
             <form onSubmit={handleSaveCat} className="space-y-4">
               <div>
-                <label className="text-xs text-gray-500 uppercase tracking-widest font-bold mb-1 block">Category Name</label>
-                <input name="name" defaultValue={editingCat?.name} required className="w-full bg-luxury-gray/20 border border-luxury-border rounded-lg px-4 py-2 text-white outline-none focus:border-luxury-gold" />
+                <label className="text-xs text-luxury-textDim uppercase tracking-widest font-bold mb-1 block">Category Name</label>
+                <input name="name" defaultValue={editingCat?.name} required className="w-full bg-luxury-gray/20 border border-luxury-border rounded-lg px-4 py-2 text-luxury-text outline-none focus:border-luxury-gold" />
               </div>
               <div>
-                <label className="text-xs text-gray-500 uppercase tracking-widest font-bold mb-1 block">Meal Type</label>
-                <select name="mealType" defaultValue={editingCat?.mealType || activeMealType} className="w-full bg-luxury-gray/20 border border-luxury-border rounded-lg px-4 py-2 text-white outline-none focus:border-luxury-gold">
-                  {mealTypes.map(mt => <option key={mt.id} value={mt.id} className="bg-luxury-black">{mt.label}</option>)}
+                <label className="text-xs text-luxury-textDim uppercase tracking-widest font-bold mb-1 block">Meal Type</label>
+                <select name="mealType" defaultValue={editingCat?.mealType || activeMealType} className="w-full bg-luxury-gray/20 border border-luxury-border rounded-lg px-4 py-2 text-luxury-text outline-none focus:border-luxury-gold">
+                  {mealTypes.map(mt => <option key={mt.id} value={mt.id}>{mt.label}</option>)}
                 </select>
               </div>
               <div>
-                <label className="text-xs text-gray-500 uppercase tracking-widest font-bold mb-1 block">Display Order</label>
-                <input name="order" type="number" defaultValue={editingCat?.order} className="w-full bg-luxury-gray/20 border border-luxury-border rounded-lg px-4 py-2 text-white outline-none focus:border-luxury-gold" />
+                <label className="text-xs text-luxury-textDim uppercase tracking-widest font-bold mb-1 block">Display Order</label>
+                <input name="order" type="number" defaultValue={editingCat?.order} className="w-full bg-luxury-gray/20 border border-luxury-border rounded-lg px-4 py-2 text-luxury-text outline-none focus:border-luxury-gold" />
               </div>
               <div className="flex space-x-3 pt-4">
-                <button type="button" onClick={() => setIsCatModalOpen(false)} className="flex-1 py-3 border border-luxury-border rounded-xl text-gray-400 font-bold uppercase tracking-widest text-[10px]">Cancel</button>
+                <button type="button" onClick={() => setIsCatModalOpen(false)} className="flex-1 py-3 border border-luxury-border rounded-xl text-luxury-textDim font-bold uppercase tracking-widest text-[10px]">Cancel</button>
                 <button type="submit" disabled={isSaving} className="flex-1 py-3 bg-luxury-gold text-black rounded-xl font-bold uppercase tracking-widest text-[10px] disabled:opacity-50">
                   {isSaving ? 'Saving...' : 'Save Category'}
                 </button>
