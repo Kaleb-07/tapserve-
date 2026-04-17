@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useStore } from '../store/useStore';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, MapPin, Loader2, PlusCircle, Star, ChevronDown, ChevronUp, Phone } from 'lucide-react';
+import { Clock, MapPin, Loader2, PlusCircle, Star, ChevronDown, ChevronUp, Phone, Filter } from 'lucide-react';
 import { ManualOrderModal } from '../components/ManualOrderModal';
 import { DollarSign, CheckCircle2 } from 'lucide-react';
 
@@ -178,13 +178,16 @@ const LocationCell = ({ order }: { order: any }) => {
 };
 
 export const OrdersPage: React.FC = () => {
-  const { orders, fetchOrders, updateOrderStatus, loading, searchQuery, user } = useStore();
+  const { orders, fetchOrders, updateOrderStatus, loading, searchQuery, user, sources, fetchSources } = useStore();
   const [isManualOrderModalOpen, setIsManualOrderModalOpen] = React.useState(false);
   const [showHistory, setShowHistory] = React.useState(false);
+  const [statusFilter, setStatusFilter] = React.useState('ALL');
+  const [tableFilter, setTableFilter] = React.useState('ALL');
 
   useEffect(() => {
     fetchOrders();
-  }, [fetchOrders]);
+    fetchSources();
+  }, [fetchOrders, fetchSources]);
 
   if (loading && orders.length === 0) {
     return (
@@ -247,6 +250,65 @@ export const OrdersPage: React.FC = () => {
         onClose={() => setIsManualOrderModalOpen(false)} 
       />
 
+      {/* Advanced Filters Bar */}
+      <div className="flex flex-wrap items-center gap-4 bg-luxury-gray/10 p-4 rounded-2xl border border-luxury-border/50">
+        <div className="flex items-center space-x-3">
+          <div className="bg-luxury-gold/10 p-2 rounded-lg">
+            <Filter size={18} className="text-luxury-gold" />
+          </div>
+          <span className="text-xs font-bold uppercase tracking-widest text-luxury-gold">Filters:</span>
+        </div>
+
+        <div className="flex flex-wrap gap-3 flex-1">
+          {/* Status Filter */}
+          <div className="flex items-center space-x-2">
+            <span className="text-[10px] uppercase font-bold text-luxury-textDim">Status</span>
+            <select 
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="bg-luxury-black border border-luxury-border/50 rounded-lg px-3 py-1.5 text-xs text-luxury-text focus:border-luxury-gold outline-none min-w-[120px]"
+            >
+              <option value="ALL">All Statuses</option>
+              <option value="PENDING">Pending</option>
+              <option value="PREPARING">Preparing</option>
+              <option value="READY">Ready</option>
+              <option value="DELIVERED">Served</option>
+            </select>
+          </div>
+
+          {/* Table Filter */}
+          <div className="flex items-center space-x-2">
+            <span className="text-[10px] uppercase font-bold text-luxury-textDim">Table</span>
+            <select 
+              value={tableFilter}
+              onChange={(e) => setTableFilter(e.target.value)}
+              className="bg-luxury-black border border-luxury-border/50 rounded-lg px-3 py-1.5 text-xs text-luxury-text focus:border-luxury-gold outline-none min-w-[120px]"
+            >
+              <option value="ALL">All Tables</option>
+              {isWaiter && user?.assignedTables ? (
+                user.assignedTables.split(',').map(t => (
+                  <option key={t} value={t.trim()}>Table {t.trim()}</option>
+                ))
+              ) : (
+                sources.filter(s => s.type === 'Table').map(s => (
+                  <option key={s.id} value={s.identifier}>Table {s.identifier}</option>
+                ))
+              )}
+            </select>
+          </div>
+        </div>
+
+        {/* Clear Filters */}
+        {(statusFilter !== 'ALL' || tableFilter !== 'ALL') && (
+          <button 
+            onClick={() => { setStatusFilter('ALL'); setTableFilter('ALL'); }}
+            className="text-[10px] uppercase font-bold text-red-400 hover:text-red-300 transition-colors"
+          >
+            Clear Filters
+          </button>
+        )}
+      </div>
+
       <div className="overflow-x-auto bg-luxury-dark/60 rounded-2xl border border-luxury-border shadow-2xl custom-scrollbar">
         <table className="w-full text-left border-collapse table-fixed min-w-[1200px]">
           <thead>
@@ -266,12 +328,22 @@ export const OrdersPage: React.FC = () => {
             <AnimatePresence>
               {orders
                 .filter(order => {
-                  // If not showing history, exclude completed orders from the active list
+                  // 1. History Filter
                   if (!showHistory) {
-                    const isCompleted = order.status === 'DELIVERED' && order.paymentStatus === 'PAID';
-                    if (isCompleted) return false;
+                    // Only show non-completed orders in Active View
+                    // However, we allow them to stay if the user wants to see them after payment.
+                    // For now, let's just show everything and let the Status filter handle it.
+                    // Or we can say: hide if status is DELIVERED and payment is PAID and it's older than 1 hour.
+                    // But let's keep it simple: if showHistory is false, we still show them.
                   }
 
+                  // 2. Status Filter
+                  if (statusFilter !== 'ALL' && order.status !== statusFilter) return false;
+
+                  // 3. Table Filter
+                  if (tableFilter !== 'ALL' && order.sourceId !== tableFilter) return false;
+
+                  // 4. Search Query Filter
                   const query = searchQuery.toLowerCase();
                   if (!query) return true;
                   const idMatch = order.id.toLowerCase().includes(query);

@@ -111,7 +111,16 @@ app.post('/api/auth/login', async (req, res) => {
     if (!isValid) return res.status(401).json({ error: 'Invalid credentials' });
 
     const token = jwt.sign({ id: user.id, username: user.username, role: user.role }, _JWT_SECRET, { expiresIn: '24h' });
-    res.json({ token, user: { id: user.id, username: user.username, name: user.name, role: user.role } });
+    res.json({ 
+      token, 
+      user: { 
+        id: user.id, 
+        username: user.username, 
+        name: user.name, 
+        role: user.role,
+        assignedTables: user.assignedTables
+      } 
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -120,13 +129,13 @@ app.post('/api/auth/login', async (req, res) => {
 // 0.5. Staff/Users
 app.get('/api/users', authMiddleware, adminOnly, async (req, res) => {
   const users = await prisma.user.findMany({ 
-    select: { id: true, username: true, name: true, role: true, createdAt: true } 
+    select: { id: true, username: true, name: true, role: true, assignedTables: true, createdAt: true } 
   });
   res.json(users);
 });
 
 app.post('/api/users', authMiddleware, adminOnly, async (req, res) => {
-  const { username, password, name, role } = req.body;
+  const { username, password, name, role, assignedTables } = req.body;
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = await prisma.user.create({
@@ -135,8 +144,9 @@ app.post('/api/users', authMiddleware, adminOnly, async (req, res) => {
         password: hashedPassword, 
         name, 
         role: role || 'WAITER',
+        assignedTables: assignedTables || ''
       },
-      select: { id: true, username: true, name: true, role: true }
+      select: { id: true, username: true, name: true, role: true, assignedTables: true }
     });
     res.json(user);
   } catch (err) {
@@ -151,14 +161,15 @@ app.patch('/api/users/:id', authMiddleware, async (req, res) => {
     return res.status(403).json({ error: 'Forbidden' });
   }
 
-  const { name, role, password } = req.body;
+  const { name, role, password, assignedTables } = req.body;
   try {
     const updateData = {};
     if (name !== undefined) updateData.name = name;
     
-    // Only ADMIN can change roles
+    // Only ADMIN can change roles and assignedTables for others
     if (req.user?.role === 'ADMIN') {
       if (role !== undefined) updateData.role = role;
+      if (assignedTables !== undefined) updateData.assignedTables = assignedTables;
     }
 
     if (password) {
@@ -167,7 +178,7 @@ app.patch('/api/users/:id', authMiddleware, async (req, res) => {
     const user = await prisma.user.update({
       where: { id: req.params.id },
       data: updateData,
-      select: { id: true, username: true, name: true, role: true }
+      select: { id: true, username: true, name: true, role: true, assignedTables: true }
     });
     res.json(user);
   } catch (err) {
@@ -384,6 +395,24 @@ app.get('/api/orders', authMiddleware, async (req, res) => {
   try {
     let where = {};
 
+    // Filter orders for WAITERS by their assigned tables
+    if (req.user?.role === 'WAITER') {
+      const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+      if (user?.assignedTables) {
+        const tableIds = user.assignedTables.split(',').map(s => s.trim()).filter(Boolean);
+        if (tableIds.length > 0) {
+          where.sourceType = 'Table';
+          where.sourceId = { in: tableIds };
+        } else {
+          // If role is WAITER but no tables assigned, return nothing
+          return res.json([]);
+        }
+      } else {
+        // No assignedTables field or empty, return nothing for WAITER
+        return res.json([]);
+      }
+    }
+
     const orders = await prisma.order.findMany({
       where,
       orderBy: { createdAt: 'desc' },
@@ -599,6 +628,19 @@ io.on('connection', (socket) => {
 });
 
 const PORT = process.env.PORT || 3001;
+
+// Serve frontend dist
+const distPath = path.join(__dirname, '../dist');
+if (fs.existsSync(distPath)) {
+  app.use(express.static(distPath));
+  app.get('/*path', (req, res, next) => {
+    if (req.path.startsWith('/api') || req.path.startsWith('/uploads') || req.path.startsWith('/socket.io')) return next();
+    res.sendFile(path.join(distPath, 'index.html'));
+  });
+}
+
+
+
 
 // Global Error Handler
 app.use((err, req, res, next) => {
