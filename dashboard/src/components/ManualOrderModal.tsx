@@ -9,13 +9,20 @@ import { useStore } from '../store/useStore';
 interface ManualOrderModalProps {
   isOpen: boolean;
   onClose: () => void;
+  initialSourceType?: string;
+  initialSourceId?: string;
 }
 
-export const ManualOrderModal: React.FC<ManualOrderModalProps> = ({ isOpen, onClose }) => {
+export const ManualOrderModal: React.FC<ManualOrderModalProps> = ({ 
+  isOpen, 
+  onClose,
+  initialSourceType = 'Table',
+  initialSourceId = ''
+}) => {
   const { categories, fetchCategories, fetchItems, createOrder } = useStore();
   const [step, setStep] = useState(1);
-  const [sourceType, setSourceType] = useState('Table');
-  const [sourceId, setSourceId] = useState('');
+  const [sourceType, setSourceType] = useState(initialSourceType);
+  const [sourceId, setSourceId] = useState(initialSourceId);
   const [searchTerm, setSearchTerm] = useState('');
   const [cart, setCart] = useState<any[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -31,6 +38,8 @@ export const ManualOrderModal: React.FC<ManualOrderModalProps> = ({ isOpen, onCl
       fetchCategories();
       fetchItems();
       setStep(1);
+      setSourceType(initialSourceType);
+      setSourceId(initialSourceId);
     }
   }, [isOpen]);
 
@@ -43,8 +52,8 @@ export const ManualOrderModal: React.FC<ManualOrderModalProps> = ({ isOpen, onCl
   const handleReset = () => {
     setStep(1);
     setCart([]);
-    setSourceId('');
-    setSourceType('Table');
+    setSourceType(initialSourceType);
+    setSourceId(initialSourceId);
     setOrderNotes('');
     setSearchTerm('');
     setActiveCategory('all');

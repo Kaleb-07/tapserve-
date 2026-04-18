@@ -126,6 +126,52 @@ app.post('/api/auth/login', async (req, res) => {
   }
 });
 
+app.get('/api/auth/me', authMiddleware, async (req, res) => {
+  try {
+    const user = await prisma.user.findUnique({ 
+      where: { id: req.user.id },
+      select: { id: true, username: true, name: true, role: true, assignedTables: true }
+    });
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    res.json({ user });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Generic Upload Route
+app.post('/api/upload-base64', authMiddleware, async (req, res) => {
+  try {
+    const { image, prefix = 'proof' } = req.body;
+    if (!image) return res.status(400).json({ error: 'No image provided' });
+
+    // Extract base64
+    const matches = image.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+    if (!matches || matches.length !== 3) {
+      return res.status(400).json({ error: 'Invalid base64 string' });
+    }
+
+    const type = matches[1];
+    const data = Buffer.from(matches[2], 'base64');
+    
+    // Choose extension based on type
+    let ext = 'jpg';
+    if (type.includes('png')) ext = 'png';
+    else if (type.includes('jpeg') || type.includes('jpg')) ext = 'jpg';
+    else if (type.includes('webp')) ext = 'webp';
+
+    const filename = `${prefix}_${Date.now()}_${Math.floor(Math.random() * 1000)}.${ext}`;
+    const filepath = path.join(uploadDir, filename);
+
+    const fs = require('fs');
+    fs.writeFileSync(filepath, data);
+
+    res.json({ url: `/uploads/${filename}` });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // 0.5. Staff/Users
 app.get('/api/users', authMiddleware, adminOnly, async (req, res) => {
   const users = await prisma.user.findMany({ 
@@ -504,11 +550,32 @@ app.post('/api/orders', async (req, res) => {
 
 app.patch('/api/orders/:id', authMiddleware, async (req, res) => {
   const { id } = req.params;
-  const { status, paymentStatus } = req.body;
+  const { status, paymentStatus, sourceId, paymentMethod, billingDetails, notes } = req.body;
   
   const updateData = {};
   if (status !== undefined) updateData.status = status;
   if (paymentStatus !== undefined) updateData.paymentStatus = paymentStatus;
+  if (sourceId !== undefined) updateData.sourceId = sourceId;
+  if (paymentMethod !== undefined) updateData.paymentMethod = paymentMethod;
+
+  // Handle serialised storage of billing metadata into notes
+  if (billingDetails !== undefined || notes !== undefined) {
+    const existingOrder = await prisma.order.findUnique({ where: { id }, select: { notes: true } });
+    let currentParsedNotes = {};
+    if (existingOrder && existingOrder.notes) {
+      try { currentParsedNotes = JSON.parse(existingOrder.notes); } 
+      catch (e) { currentParsedNotes = { text: existingOrder.notes }; }
+    }
+    
+    if (notes !== undefined) currentParsedNotes.text = notes;
+    if (billingDetails !== undefined) {
+      currentParsedNotes.billing = {
+        ...currentParsedNotes.billing,
+        ...billingDetails
+      };
+    }
+    updateData.notes = JSON.stringify(currentParsedNotes);
+  }
 
   const order = await prisma.order.update({
     where: { id },

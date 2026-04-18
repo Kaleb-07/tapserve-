@@ -10,10 +10,14 @@ const getMenuItems = (role: string) => {
   const items = [
     // Dashboard: only for ADMIN and CHEF
     ...(isAdmin || isChef ? [{ id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard }] : []),
+    // Tables: for WAITER and ADMIN
+    ...(isAdmin || !isChef ? [{ id: 'tables', label: isAdmin ? 'Table Operations' : 'My Tables', icon: LayoutDashboard }] : []),
     { id: 'orders', label: 'Orders', icon: ShoppingCart },
     { id: 'payments', label: 'Payments', icon: CreditCard },
     // Menu Items: only for ADMIN and CHEF
     ...(isAdmin || isChef ? [{ id: 'menu', label: 'Menu Items', icon: Utensils }] : []),
+    // Reports: Waiter sees own stats, Admin sees staff analytics
+    ...(!isChef ? [{ id: 'waiter_reports', label: isAdmin ? 'Staff Analytics' : 'My Performance', icon: BarChart3 }] : []),
   ];
   
   if (isAdmin) {

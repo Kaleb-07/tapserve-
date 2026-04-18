@@ -3,6 +3,7 @@ import { Sidebar } from './components/Sidebar';
 import { Topbar } from './components/Topbar';
 import { DashboardPage } from './pages/DashboardPage';
 import { OrdersPage } from './pages/OrdersPage';
+import { WaiterTablesPage } from './pages/WaiterTablesPage';
 import { MenuPage } from './pages/MenuPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { LoginPage } from './pages/LoginPage';
@@ -12,6 +13,7 @@ import { ProfilePage } from './pages/ProfilePage';
 import { Toast } from './components/Toast';
 import { ConfirmModal } from './components/ConfirmModal';
 import { ReportsPage } from './pages/ReportsPage';
+import { WaiterReportsPage } from './pages/WaiterReportsPage';
 import { useStore } from './store/useStore';
 import { useDocumentMeta } from './hooks/useDocumentMeta';
 
@@ -34,7 +36,7 @@ const App: React.FC = () => {
   // Set correct initial tab once user is known
   React.useEffect(() => {
     if (user) {
-      setActiveTab(user.role === 'WAITER' ? 'orders' : 'dashboard');
+      setActiveTab(user.role === 'WAITER' ? 'tables' : 'dashboard');
     }
   }, [user?.role]);
 
@@ -44,6 +46,7 @@ const App: React.FC = () => {
 
   const isWaiter = user?.role === 'WAITER';
   const isAdmin = user?.role === 'ADMIN';
+  const isChef = user?.role === 'CHEF';
 
   const renderContent = () => {
     switch (activeTab) {
@@ -51,6 +54,9 @@ const App: React.FC = () => {
         // Guard: waiters cannot see dashboard
         if (isWaiter) return <OrdersPage />;
         return <DashboardPage onSetTab={setActiveTab} />;
+      case 'tables':
+        if (isChef) return <DashboardPage onSetTab={setActiveTab} />;
+        return <WaiterTablesPage />;
       case 'orders':
         return <OrdersPage />;
       case 'menu':
@@ -62,6 +68,10 @@ const App: React.FC = () => {
       case 'staff':
         if (!isAdmin) return <OrdersPage />;
         return <StaffManagementPage />;
+      case 'waiter_reports':
+        // Waiters see their own performance, Admins see venue-wide staff analytics
+        if (isChef) return <DashboardPage onSetTab={setActiveTab} />;
+        return <WaiterReportsPage />;
       case 'reports':
         if (!isAdmin) return <OrdersPage />;
         return <ReportsPage />;
@@ -71,7 +81,7 @@ const App: React.FC = () => {
       case 'profile':
         return <ProfilePage />;
       default:
-        return isWaiter ? <OrdersPage /> : <DashboardPage />;
+        return isWaiter ? <WaiterTablesPage /> : <DashboardPage onSetTab={setActiveTab} />;
     }
   };
 
