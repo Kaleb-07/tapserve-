@@ -84,15 +84,15 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, t
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center md:p-4 bg-black/60 backdrop-blur-sm">
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
-        className="bg-luxury-dark border border-luxury-border w-full max-w-4xl h-[85vh] rounded-3xl overflow-hidden flex shadow-2xl"
+        className="bg-luxury-dark border-luxury-border w-full max-w-4xl md:h-[85vh] h-full md:rounded-3xl rounded-none overflow-hidden flex flex-col md:flex-row shadow-2xl border-x md:border"
       >
         {/* LEFT PANEL: Receipt */}
-        <div className="w-1/2 flex flex-col border-r border-luxury-border bg-luxury-gray/10">
+        <div className="w-full md:w-1/2 flex flex-col border-b md:border-b-0 md:border-r border-luxury-border bg-luxury-gray/10 h-[40vh] md:h-auto">
           <div className="p-6 border-b border-luxury-border flex justify-between items-center">
             <div>
               <h2 className="text-xl font-bold text-luxury-text font-serif">Table {tableId}</h2>
@@ -144,30 +144,30 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, t
         </div>
 
         {/* RIGHT PANEL: Actions */}
-        <div className="w-1/2 flex flex-col bg-luxury-dark/40 overflow-y-auto custom-scrollbar relative">
-          <button onClick={onClose} className="absolute top-4 right-4 p-2 text-luxury-textDim hover:text-luxury-text transition-colors z-10 bg-luxury-gray/50 rounded-full border border-luxury-border">
+        <div className="w-full md:w-1/2 flex flex-col bg-luxury-dark/40 overflow-y-auto custom-scrollbar relative">
+          <button onClick={onClose} className="absolute top-4 right-4 p-2 text-luxury-textDim hover:text-luxury-text transition-colors z-20 bg-luxury-gray/50 rounded-full border border-luxury-border">
             <X size={18} />
           </button>
 
-          <div className="p-8 space-y-8 flex-1">
+          <div className="p-5 md:p-8 space-y-6 md:space-y-8 flex-1">
             {/* Billing Adjustments */}
             <div>
-              <h3 className="text-lg font-bold text-luxury-text font-serif mb-4">Billing Adjustments</h3>
-              <div className="grid grid-cols-2 gap-4">
+              <h3 className="text-base md:text-lg font-bold text-luxury-text font-serif mb-4">Billing Adjustments</h3>
+              <div className="grid grid-cols-2 gap-3 md:gap-4">
                 <div>
-                  <label className="text-[10px] uppercase font-bold text-luxury-textDim tracking-widest mb-2 block">Discount ($)</label>
+                  <label className="text-[9px] md:text-[10px] uppercase font-bold text-luxury-textDim tracking-widest mb-2 block">Discount ($)</label>
                   <div className="relative">
-                    <DollarSign size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-luxury-textDim" />
+                    <DollarSign size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-luxury-textDim" />
                     <input type="number" min="0" value={discount || ''} onChange={e => setDiscount(Number(e.target.value))}
-                      className="w-full bg-luxury-gray border border-luxury-border rounded-xl pl-8 pr-4 py-3 text-sm text-luxury-text focus:outline-none focus:border-luxury-gold transition-colors" placeholder="0.00" />
+                      className="w-full bg-luxury-gray border border-luxury-border rounded-xl pl-8 pr-3 py-2.5 md:py-3 text-sm text-luxury-text focus:outline-none focus:border-luxury-gold transition-colors" placeholder="0.00" />
                   </div>
                 </div>
                 <div>
-                  <label className="text-[10px] uppercase font-bold text-luxury-textDim tracking-widest mb-2 block">Service ($)</label>
+                  <label className="text-[9px] md:text-[10px] uppercase font-bold text-luxury-textDim tracking-widest mb-2 block">Service ($)</label>
                   <div className="relative">
-                    <DollarSign size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-luxury-textDim" />
+                    <DollarSign size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-luxury-textDim" />
                     <input type="number" min="0" value={serviceCharge || ''} onChange={e => setServiceCharge(Number(e.target.value))}
-                      className="w-full bg-luxury-gray border border-luxury-border rounded-xl pl-8 pr-4 py-3 text-sm text-luxury-text focus:outline-none focus:border-luxury-gold transition-colors" placeholder="0.00" />
+                      className="w-full bg-luxury-gray border border-luxury-border rounded-xl pl-8 pr-3 py-2.5 md:py-3 text-sm text-luxury-text focus:outline-none focus:border-luxury-gold transition-colors" placeholder="0.00" />
                   </div>
                 </div>
               </div>
@@ -176,14 +176,14 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, t
             {/* Payment Tracking */}
             <div>
               <h3 className="text-lg font-bold text-luxury-text font-serif mb-4">Payment Tracking</h3>
-              <div className="grid grid-cols-3 gap-3 mb-6">
+              <div className="grid grid-cols-3 gap-2 md:gap-3 mb-6">
                 {['CASH', 'CARD', 'ROOM'].map((method) => (
                   <button key={method} onClick={() => setPaymentMethod(method)}
-                    className={`py-3 rounded-xl border flex flex-col items-center justify-center transition-all ${paymentMethod === method ? 'bg-luxury-gold/10 border-luxury-gold text-luxury-gold' : 'bg-luxury-gray border-luxury-border text-luxury-textDim hover:border-luxury-gold/30'}`}>
-                    {method === 'CASH' && <Banknote size={16} className="mb-1" />}
-                    {method === 'CARD' && <CreditCard size={16} className="mb-1" />}
-                    {method === 'ROOM' && <FileText size={16} className="mb-1" />}
-                    <span className="text-[10px] font-bold tracking-widest uppercase">{method}</span>
+                    className={`py-2.5 md:py-3 rounded-xl border flex flex-col items-center justify-center transition-all ${paymentMethod === method ? 'bg-luxury-gold/10 border-luxury-gold text-luxury-gold' : 'bg-luxury-gray border-luxury-border text-luxury-textDim hover:border-luxury-gold/30'}`}>
+                    {method === 'CASH' && <Banknote size={14} className="mb-1 md:w-4 md:h-4" />}
+                    {method === 'CARD' && <CreditCard size={14} className="mb-1 md:w-4 md:h-4" />}
+                    {method === 'ROOM' && <FileText size={14} className="mb-1 md:w-4 md:h-4" />}
+                    <span className="text-[9px] md:text-[10px] font-bold tracking-widest uppercase">{method}</span>
                   </button>
                 ))}
               </div>
@@ -199,14 +199,14 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, t
                   <p className="text-[10px] text-luxury-textDim mt-2 tracking-wide font-bold">Leave blank for full amount.</p>
                 </div>
 
-                <div className="flex space-x-2">
+                <div className="flex flex-wrap gap-2">
                   {[
                     { id: 'PAID', label: 'Full Paid', active: 'bg-emerald-500/20 border-emerald-500 text-emerald-500' },
                     { id: 'PARTIAL', label: 'Partial', active: 'bg-yellow-500/20 border-yellow-500 text-yellow-500' },
-                    { id: 'UNPAID', label: 'Unpaid', active: 'bg-rose-500/20 border-rose-500 text-rose-500' },
+                    { id: 'UNPAID', label: 'Unpaid', active: 'bg-rose-500/10 border-rose-500 text-rose-500' },
                   ].map(btn => (
                     <button key={btn.id} onClick={() => setPaymentStatus(btn.id)}
-                      className={`flex-1 py-2.5 rounded-lg border text-[10px] font-bold uppercase tracking-widest transition-all ${paymentStatus === btn.id ? btn.active : 'bg-luxury-gray border-luxury-border text-luxury-textDim hover:border-luxury-gold/30'}`}>
+                      className={`flex-1 min-w-[80px] py-2 md:py-2.5 rounded-lg border text-[9px] md:text-[10px] font-bold uppercase tracking-widest transition-all ${paymentStatus === btn.id ? btn.active : 'bg-luxury-gray border-luxury-border text-luxury-textDim hover:border-luxury-gold/30'}`}>
                       {btn.label}
                     </button>
                   ))}
@@ -219,7 +219,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, t
               <h3 className="text-sm font-bold text-luxury-text font-serif mb-3">Attach Proof of Payment</h3>
               <div
                 onClick={() => fileInputRef.current?.click()}
-                className={`w-full border-2 border-dashed ${proofImage ? 'border-emerald-500/50 bg-emerald-500/5' : 'border-luxury-border hover:border-luxury-gold/50 bg-luxury-gray/30'} rounded-2xl p-6 flex flex-col items-center justify-center cursor-pointer transition-all h-32 relative overflow-hidden`}
+                className={`w-full border-2 border-dashed ${proofImage ? 'border-emerald-500/50 bg-emerald-500/5' : 'border-luxury-border hover:border-luxury-gold/50 bg-luxury-gray/30'} rounded-2xl p-4 md:p-6 flex flex-col items-center justify-center cursor-pointer transition-all h-28 md:h-32 relative overflow-hidden`}
               >
                 <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileUpload} />
                 {isUploading ? (
@@ -229,25 +229,25 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, t
                     <div className="absolute inset-0 opacity-40">
                       <img src={proofImage} alt="Proof" className="w-full h-full object-cover" />
                     </div>
-                    <CheckCircle2 size={32} className="text-emerald-500 z-10 mb-2 drop-shadow-md" />
-                    <span className="text-[10px] font-bold text-luxury-text uppercase tracking-widest z-10 drop-shadow-md">Screenshot Attached</span>
+                    <CheckCircle2 size={28} className="text-emerald-500 z-10 mb-2 drop-shadow-md md:w-8 md:h-8" />
+                    <span className="text-[9px] md:text-[10px] font-bold text-luxury-text uppercase tracking-widest z-10 drop-shadow-md">Attached</span>
                   </>
                 ) : (
                   <>
-                    <UploadCloud size={24} className="text-luxury-textDim mb-2" />
-                    <span className="text-[10px] font-bold text-luxury-textDim uppercase tracking-widest">Click to upload Receipt Image</span>
-                    <span className="text-[9px] text-luxury-textDim/60 mt-1">JPEG/PNG, Max 5MB</span>
+                    <UploadCloud size={20} className="text-luxury-textDim mb-2 md:w-6 md:h-6" />
+                    <span className="text-[9px] md:text-[10px] font-bold text-luxury-textDim uppercase tracking-widest">Upload Receipt</span>
+                    <span className="text-[8px] md:text-[9px] text-luxury-textDim/60 mt-1">JPEG/PNG, Max 5MB</span>
                   </>
                 )}
               </div>
             </div>
           </div>
 
-          <div className="p-6 border-t border-luxury-border bg-luxury-gray/10 mt-auto">
+          <div className="p-5 md:p-6 border-t border-luxury-border bg-luxury-gray/10 mt-auto safe-bottom">
             <button
               onClick={processCheckout}
               disabled={isSubmitting || isUploading}
-              className="w-full py-4 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white rounded-xl font-bold uppercase tracking-widest text-xs transition-all shadow-lg flex justify-center items-center"
+              className="w-full py-3.5 md:py-4 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white rounded-xl font-bold uppercase tracking-widest text-[11px] md:text-xs transition-all shadow-lg flex justify-center items-center active:scale-[0.98]"
             >
               {isSubmitting ? <Loader2 size={16} className="animate-spin" /> : 'Confirm & Process Bill'}
             </button>
