@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { X, Receipt, CreditCard, Banknote, UploadCloud, CheckCircle2, FileText, Loader2, DollarSign } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import type { Order } from '../types';

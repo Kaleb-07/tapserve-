@@ -15,7 +15,7 @@ axios.interceptors.request.use((config) => {
   return config;
 });
 
-import type { Category, MenuItem, Order, User, Source, AppState } from '../types';
+import type { Order, AppState } from '../types';
 
 
 export const useStore = create<AppState>((set) => ({

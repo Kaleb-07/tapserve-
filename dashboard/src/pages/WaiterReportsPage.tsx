@@ -1,8 +1,8 @@
 import React, { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import {
-  BarChart3, Clock, CheckCircle2, AlertCircle, TrendingUp,
-  Table2, Zap, Package, Users, DollarSign, Timer, Award, Calendar
+  BarChart3, CheckCircle2, AlertCircle, TrendingUp,
+  Table2, Zap, Package, DollarSign, Timer, Award, Calendar
 } from 'lucide-react';
 import { useStore } from '../store/useStore';
 

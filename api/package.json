@@ -4,7 +4,7 @@
   "description": "REST API & Socket.IO backend for the Luxury QR Menu ordering system.",
   "main": "src/index.js",
   "scripts": {
-    "start": "node src/index.js",
+    "start": "npx prisma db push && node src/index.js",
     "dev": "nodemon src/index.js",
     "generate": "prisma generate",
     "migrate": "prisma migrate deploy",

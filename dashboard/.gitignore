@@ -22,7 +22,8 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
-
+# ─── Editor & OS ─────────────────────────────────────────────────
+vercel.json
 # ─── Editor & OS ─────────────────────────────────────────────────
 .vscode/*
 !.vscode/extensions.json
@@ -47,3 +48,4 @@ Desktop.ini
 *.local
 *.tmp
 *.bak
+.vercel
