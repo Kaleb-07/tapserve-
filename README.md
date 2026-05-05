@@ -63,7 +63,7 @@ cd luxury-qr-menu
 ### 2. Backend Setup
 
 ```bash
-cd api
+cd backend
 npm install
 ```
 
@@ -108,7 +108,7 @@ npm start        # production
 ### 3. Frontend Setup
 
 ```bash
-cd dashboard
+cd frontend
 npm install
 npm run dev
 ```
@@ -134,7 +134,7 @@ On first startup, if no admin exists in the database, a default account is creat
 
 ```
 menu/
-├── api/                    # Express + Prisma backend
+├── backend/                # Express + Prisma backend
 │   ├── prisma/
 │   │   └── schema.prisma   # Database schema
 │   ├── src/
@@ -144,7 +144,7 @@ menu/
 │   ├── .env.example        # Environment variable template
 │   └── package.json
 │
-└── dashboard/              # React + Vite frontend
+└── frontend/               # React + Vite frontend
     ├── src/
     │   ├── components/     # Layout: Sidebar, Topbar, ManualOrderModal
     │   ├── pages/          # Dashboard, Orders, Menu, Settings, Login, CustomerOrder
