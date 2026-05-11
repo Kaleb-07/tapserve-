@@ -166,5 +166,3 @@ menu/
 - Change the default admin password on first login.
 
 ---
-
-## 📄 License
