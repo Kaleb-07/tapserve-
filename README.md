@@ -168,5 +168,3 @@ menu/
 ---
 
 ## 📄 License
-
-MIT
