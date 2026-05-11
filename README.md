@@ -164,5 +164,3 @@ menu/
 - Set a strong, unique `JWT_SECRET` in production.
 - The `uploads/` folder is gitignored — configure persistent cloud storage (e.g. S3) for production deployments.
 - Change the default admin password on first login.
-
----
