@@ -225,7 +225,7 @@ export const ReportsPage: React.FC = () => {
 
       yPos += 26;
 
-      // Group items by category
+      // The Group of items by category
       if (categories.length > 0) {
         categories.forEach(cat => {
           if (cat.items && cat.items.length > 0) {
