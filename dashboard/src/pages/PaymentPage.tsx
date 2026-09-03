@@ -104,7 +104,7 @@ export const PaymentPage: React.FC = () => {
                       onClick={() => updateOrderStatus(order.id, undefined, 'UNPAID')}
                       className="w-full py-3 rounded-xl font-bold uppercase tracking-[0.2em] transition-all border border-luxury-border bg-luxury-black text-luxury-textDim hover:text-white"
                     >
-                      Revert to Unpaid
+                      Revert To Unpaid
                     </button>
                   )}
                 </div>
