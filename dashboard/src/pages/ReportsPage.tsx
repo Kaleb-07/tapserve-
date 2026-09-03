@@ -288,7 +288,7 @@ export const ReportsPage: React.FC = () => {
     }
   };
 
-  // ─── ORDER REPORT ──────────────────────────────────────────────
+  // ─── THE ORDER REPORTS ────
   const generateOrderReport = async () => {
     setGenerating('order');
     await new Promise(r => setTimeout(r, 300));
