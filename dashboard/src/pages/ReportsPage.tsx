@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+1import React, { useState, useMemo, useEffect } from 'react';
 import { useStore } from '../store/useStore';
 import {
   DollarSign,
@@ -148,7 +148,7 @@ export const ReportsPage: React.FC = () => {
     return { revenue, totalCost, netProfit, count, avgValue, sources, topItem };
   }, [filteredOrders]);
 
-  // ─── PDF HELPERS ───────────────────────────────────────────────
+  // The PDF HELPERS
   const addPdfHeader = (doc: jsPDF, title: string, subtitle: string) => {
     const pageW = doc.internal.pageSize.getWidth();
     // Gold header bar
