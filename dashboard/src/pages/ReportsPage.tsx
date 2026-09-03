@@ -190,7 +190,7 @@ export const ReportsPage: React.FC = () => {
     }
   };
 
-  // ─── MENU REPORT ───────────────────────────────────────────────
+  // ─── The MENU REPORT ──
   const generateMenuReport = async () => {
     setGenerating('menu');
     await new Promise(r => setTimeout(r, 300));
