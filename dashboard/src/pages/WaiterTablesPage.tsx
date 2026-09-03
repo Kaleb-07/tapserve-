@@ -190,7 +190,7 @@ export const WaiterTablesPage: React.FC = () => {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {waiterTables.map(table => {
-            // Find active orders for this table
+            // Find active orders for this tables
             const tableOrders = activeOrders.filter(o => o.sourceId === table.identifier && o.sourceType === 'Table');
             const isOccupied = tableOrders.length > 0;
             const isReserved = !isOccupied && reservedTables[table.identifier];
