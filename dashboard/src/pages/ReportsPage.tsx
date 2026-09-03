@@ -805,7 +805,7 @@ export const ReportsPage: React.FC = () => {
                 )}
                 {card.id === 'menu' && <div className="mt-auto" />}
 
-                {/* Download button */}
+                {/* The Download button */}
                 <button
                   onClick={card.action}
                   disabled={generating !== null}
