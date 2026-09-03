@@ -159,7 +159,7 @@ export const ReportsPage: React.FC = () => {
     doc.setFontSize(18);
     doc.setTextColor(0, 0, 0);
     doc.text(restaurantName.toUpperCase(), 14, 16);
-    // Report title
+    // The Report title
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
     doc.text(title, 14, 24);
