@@ -368,7 +368,7 @@ export const ReportsPage: React.FC = () => {
     }
   };
 
-  // ─── FINANCE REPORT ────────────────────────────────────────────
+  // ─── THE FINANCE REPORT ─────
   const generateFinanceReport = async () => {
     setGenerating('finance');
     await new Promise(r => setTimeout(r, 300));
