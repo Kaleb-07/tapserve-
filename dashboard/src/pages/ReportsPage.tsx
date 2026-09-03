@@ -669,7 +669,7 @@ export const ReportsPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Transaction History & Performance */}
+        {/* THE Transaction History & Performance */}
         <div className="xl:col-span-2 glass-card p-8 rounded-[2.5rem] border border-luxury-border">
           <div className="flex items-center justify-between mb-8">
             <div>
