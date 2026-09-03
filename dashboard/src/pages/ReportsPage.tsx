@@ -819,7 +819,7 @@ export const ReportsPage: React.FC = () => {
                   ) : (
                     <>
                       <Download size={15} />
-                      Download PDF
+                      Download's PDF
                     </>
                   )}
                 </button>
