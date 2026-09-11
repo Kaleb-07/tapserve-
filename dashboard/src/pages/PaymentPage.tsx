@@ -9,7 +9,7 @@ export const PaymentPage: React.FC = () => {
 
   useEffect(() => {
     fetchOrders();
-    // The Setting up polling for live updates or relying on existing socket connection
+    // The Setting up polling for live updates or relying on existing socket connections
   }, [fetchOrders]);
 
   const filteredOrders = orders.filter(o => filter === 'ALL' || o.paymentStatus === filter);
