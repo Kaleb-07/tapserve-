@@ -69,7 +69,7 @@ export interface AppState {
   login: (username: string, password: string) => Promise<void>;
   logout: () => void;
   checkAuth: () => Promise<void>;
-  // User Actions (Admin)
+  // User Actions and Admin
   addUser: (userData: any) => Promise<void>;
   updateUser: (id: string, userData: any) => Promise<void>;
   deleteUser: (id: string) => Promise<void>;
