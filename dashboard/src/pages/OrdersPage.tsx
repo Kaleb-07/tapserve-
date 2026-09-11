@@ -343,7 +343,7 @@ export const OrdersPage: React.FC = () => {
                   // 3. Table Filter
                   if (tableFilter !== 'ALL' && order.sourceId !== tableFilter) return false;
 
-                  // 4. Search Query Filter
+                  // 4. The Search Query Filter
                   const query = searchQuery.toLowerCase();
                   if (!query) return true;
                   const idMatch = order.id.toLowerCase().includes(query);
