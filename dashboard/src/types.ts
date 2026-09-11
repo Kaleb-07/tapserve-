@@ -103,7 +103,7 @@ export interface AppState {
   // Sidebar reactivity
   isSidebarCollapsed: boolean;
   toggleSidebarCollapse: () => void;
-  // Source Actions (Admin)
+  // Source Actions and Admin
   sources: Source[];
   fetchSources: () => Promise<void>;
   addSource: (sourceData: any) => Promise<void>;
