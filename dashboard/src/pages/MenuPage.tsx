@@ -12,7 +12,7 @@ export const MenuPage: React.FC = () => {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
 
-  // Modals / Loading state
+  // Modals OR Loading state
   const [isItemModalOpen, setIsItemModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
   const [isCatModalOpen, setIsCatModalOpen] = useState(false);
