@@ -20,7 +20,7 @@ export const MenuPage: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [catSearchQuery, setCatSearchQuery] = useState('');
 
-  // Ingredient tag state
+  // The Ingredient tag state
   const [ingredientTags, setIngredientTags] = useState<string[]>([]);
   const [ingredientInput, setIngredientInput] = useState('');
   const ingredientInputRef = useRef<HTMLInputElement>(null);
