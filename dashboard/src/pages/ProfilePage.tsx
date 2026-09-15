@@ -25,7 +25,8 @@ export const ProfilePage: React.FC = () => {
       
       await updateUser(user.id, updateData);
       setMessage({ text: 'Profile updated successfully!', type: 'success' });
-      setPassword(''); // Clear password field after successful update
+      setPassword('');
+ // Clear password field after successful updated
     } catch (err: any) {
       setMessage({ text: err.response?.data?.error || 'Failed to update profile', type: 'error' });
     } finally {
