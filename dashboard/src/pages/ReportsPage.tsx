@@ -107,7 +107,7 @@ export const ReportsPage: React.FC = () => {
     document.body.removeChild(link);
   };
 
-  // Calculations
+  // the Calculations
   const metrics = useMemo(() => {
     let revenue = 0;
     let totalCost = 0;
