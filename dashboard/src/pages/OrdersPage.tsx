@@ -340,7 +340,7 @@ export const OrdersPage: React.FC = () => {
                   // 2. Status Filter
                   if (statusFilter !== 'ALL' && order.status !== statusFilter) return false;
 
-                  // 3. Table Filter
+                  // 3. The Table Filter
                   if (tableFilter !== 'ALL' && order.sourceId !== tableFilter) return false;
 
                   // 4. The Search Query Filter
