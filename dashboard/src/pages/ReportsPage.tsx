@@ -56,7 +56,7 @@ export const ReportsPage: React.FC = () => {
     timeRange === 'daily' ? dateSelection 
     : (timeRange === 'weekly' ? weekSelection : monthSelection);
 
-  // Filter orders based on time range
+  // the Filter orders based on time range
   const filteredOrders = useMemo(() => {
     return orders.filter(order => {
       const orderDate = new Date(order.createdAt);
