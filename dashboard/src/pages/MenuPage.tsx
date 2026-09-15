@@ -89,7 +89,7 @@ export const MenuPage: React.FC = () => {
       }
     }
 
-    // Flush any pending ingredient input
+    // The Flush any pending ingredient input
     const allTags = ingredientInput.trim()
       ? [...ingredientTags, ingredientInput.trim()]
       : ingredientTags;
