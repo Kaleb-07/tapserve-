@@ -151,7 +151,7 @@ export const ReportsPage: React.FC = () => {
   // The PDF HELPERS
   const addPdfHeader = (doc: jsPDF, title: string, subtitle: string) => {
     const pageW = doc.internal.pageSize.getWidth();
-    // Gold header bar
+    // the Gold header bar
     doc.setFillColor(212, 175, 55);
     doc.rect(0, 0, pageW, 38, 'F');
     // Restaurant name
