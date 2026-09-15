@@ -29,7 +29,7 @@ export const LoginPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-luxury-black flex items-center justify-center p-6 relative overflow-hidden">
-      {/* Background Decorative Elements */}
+      {/* The Background Decorative Elements */}
       <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-luxury-gold/5 rounded-full blur-[120px]" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-luxury-gold/5 rounded-full blur-[120px]" />
       
