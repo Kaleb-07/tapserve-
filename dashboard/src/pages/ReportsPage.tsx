@@ -107,7 +107,7 @@ export const ReportsPage: React.FC = () => {
     document.body.removeChild(link);
   };
 
-  // the Calculations
+  // The Calculations
   const metrics = useMemo(() => {
     let revenue = 0;
     let totalCost = 0;
@@ -166,7 +166,7 @@ export const ReportsPage: React.FC = () => {
     // Date
     doc.setFontSize(8);
     doc.text(`Generated: ${new Date().toLocaleString()}  |  Period: ${currentSelectionValue.toUpperCase()}`, 14, 32);
-    // Subtitle on right
+    // The Subtitle on right
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(9);
     doc.text(subtitle, pageW - 14, 24, { align: 'right' });
