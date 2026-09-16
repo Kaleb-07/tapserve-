@@ -45,7 +45,7 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 app.use('/uploads', express.static(uploadDir));
 
-// Setup initial data if it doesn't exist
+// Setup the initial data if it doesn't exist
 const setupInitialData = async () => {
   try {
     const adminCount = await prisma.user.count({ where: { role: 'ADMIN' } });
