@@ -29,7 +29,7 @@ export const WaiterTablesPage: React.FC = () => {
   }, [fetchSources, fetchOrders]);
 
 
-  // Derived tables: Admin sees all tables, Waiter sees only assigned
+  // Derived tables: the Admin sees all tables, Waiter sees only assigned
   const isAdmin = user?.role === 'ADMIN';
   const assignedTableIds = user?.assignedTables ? user.assignedTables.split(',').map(s => s.trim()).filter(Boolean) : [];
   
