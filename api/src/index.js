@@ -139,7 +139,7 @@ app.get('/api/auth/me', authMiddleware, async (req, res) => {
   }
 });
 
-// Generic Upload Route
+// the Generic Upload Route
 app.post('/api/upload-base64', authMiddleware, async (req, res) => {
   try {
     const { image, prefix = 'proof' } = req.body;
