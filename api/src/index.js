@@ -33,7 +33,7 @@ if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
 
-// Multer Config - Memory Storage for DB-backed images
+// Multer Config and Memory Storage for DB-backed images
 const storage = multer.memoryStorage();
 const upload = multer({ 
   storage,
