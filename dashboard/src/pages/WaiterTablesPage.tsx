@@ -39,7 +39,7 @@ export const WaiterTablesPage: React.FC = () => {
     return assignedTableIds.includes(s.identifier);
   });
 
-  // Active orders
+  // the Active orders
   const activeOrders = orders.filter(
     o => o.status !== 'DELIVERED' || o.paymentStatus !== 'PAID'
   );
