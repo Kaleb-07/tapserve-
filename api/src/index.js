@@ -99,7 +99,7 @@ const adminOnly = (req, res, next) => {
   next();
 };
 
-// Routes
+// the Routes
 // 0. Auth
 app.post('/api/auth/login', async (req, res) => {
   const { username, password } = req.body;
