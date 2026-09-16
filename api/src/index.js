@@ -27,7 +27,7 @@ const io = new Server(server, {
 
 const prisma = new PrismaClient();
 
-// Ensure uploads directory exists
+// The Ensure uploads directory exists
 const uploadDir = path.join(__dirname, '../uploads');
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
