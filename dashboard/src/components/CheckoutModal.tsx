@@ -143,7 +143,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, t
           </div>
         </div>
 
-        {/* RIGHT PANEL: Actions */}
+        {/* RIGHT PANEL is Actions */}
         <div className="w-full md:w-1/2 flex flex-col bg-luxury-dark/40 overflow-y-auto custom-scrollbar relative">
           <button onClick={onClose} className="absolute top-4 right-4 p-2 text-luxury-textDim hover:text-luxury-text transition-colors z-20 bg-luxury-gray/50 rounded-full border border-luxury-border">
             <X size={18} />
