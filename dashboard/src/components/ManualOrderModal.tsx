@@ -78,7 +78,7 @@ export const ManualOrderModal: React.FC<ManualOrderModalProps> = ({
           : i
       ));
     } else {
-      // Check if item already in cart
+      // the Check if item already in cart
       const existing = cart.find(i => i.id === item.id && JSON.stringify(i.excludedIngredients) === JSON.stringify(excluded));
       if (existing) {
         setCart(cart.map(i => i.cartId === existing.cartId ? { ...i, quantity: i.quantity + 1 } : i));
