@@ -8,7 +8,7 @@ const getMenuItems = (role: string) => {
   const isChef = role === 'CHEF';
 
   const items = [
-    // Dashboard: only for ADMIN and CHEF
+    // Dashboard: the only for ADMIN and CHEF
     ...(isAdmin || isChef ? [{ id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard }] : []),
     // Tables: for WAITER and ADMIN
     ...(isAdmin || !isChef ? [{ id: 'tables', label: isAdmin ? 'Table Operations' : 'My Tables', icon: LayoutDashboard }] : []),
