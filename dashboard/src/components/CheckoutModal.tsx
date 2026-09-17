@@ -214,7 +214,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, t
               </div>
             </div>
 
-            {/* Proof Upload */}
+            {/* The Proof Upload */}
             <div>
               <h3 className="text-sm font-bold text-luxury-text font-serif mb-3">Attach Proof of Payment</h3>
               <div
