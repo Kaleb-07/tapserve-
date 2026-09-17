@@ -45,7 +45,7 @@ export const ManualOrderModal: React.FC<ManualOrderModalProps> = ({
 
   useEffect(() => {
     if (categories.length > 0 && activeCategory === 'all') {
-      // keep 'all' as default
+      // keep all as default
     }
   }, [categories]);
 
