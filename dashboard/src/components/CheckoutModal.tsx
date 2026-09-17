@@ -91,7 +91,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, t
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
         className="bg-luxury-dark border-luxury-border w-full max-w-4xl md:h-[85vh] h-full md:rounded-3xl rounded-none overflow-hidden flex flex-col md:flex-row shadow-2xl border-x md:border"
       >
-        {/* LEFT PANEL: Receipt */}
+        {/* LEFT PANEL is Receipt */}
         <div className="w-full md:w-1/2 flex flex-col border-b md:border-b-0 md:border-r border-luxury-border bg-luxury-gray/10 h-[40vh] md:h-auto">
           <div className="p-6 border-b border-luxury-border flex justify-between items-center">
             <div>
